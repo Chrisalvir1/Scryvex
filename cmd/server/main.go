@@ -25,7 +25,7 @@ var (
 func main() {
 	configPath := flag.String("config", "./configs/scryvex.yaml", "Ruta al archivo de configuración")
 	dataDir    := flag.String("data",   "/data",                   "Directorio de datos")
-	port       := flag.String("port",   getEnv("PORT", "8080"),    "Puerto HTTP")
+	port       := flag.String("port",   getEnv("PORT", "1994"),    "Puerto HTTP")
 	flag.Parse()
 
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
@@ -109,7 +109,7 @@ func handleStatus(ver, cfgPath string) http.HandlerFunc {
 			"uptime":   time.Since(start).Round(time.Second).String(),
 			"config":   cfgPath,
 			"endpoints": map[string]string{
-				"ui":           "http://localhost:8080/",
+				"ui":           "http://localhost:1994/",
 				"matter_api":   "http://localhost:7878/matter/status",
 				"go2rtc":       "http://localhost:1984/",
 				"rtsp":         "rtsp://localhost:8554/",

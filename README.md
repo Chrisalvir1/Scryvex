@@ -104,7 +104,7 @@ El archivo de configuración se crea automáticamente en `~/.scryvex/configs/scr
 
 ```yaml
 server:
-  port: 8080
+  port: 1994
   log_level: info   # debug, info, warn, error
 
 matter:
@@ -130,8 +130,8 @@ homeassistant:
 ## 📡 Uso
 
 ```
-http://localhost:8080       → UI principal
-http://localhost:8080/api/  → REST API
+http://localhost:1994       → UI principal
+http://localhost:1994/api/  → REST API
 rtsp://localhost:8554/      → Re-streams RTSP
 ```
 

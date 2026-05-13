@@ -226,7 +226,7 @@ install_config() {
   cat > "$CONFIG_DIR/scryvex.yaml" << 'YAML'
 # Scryvex — Configuración
 server:
-  port: 8080
+  port: 1994
   data_dir: ~/.scryvex/data
   log_level: info
 
@@ -297,12 +297,12 @@ sleep 1
 "\$BIN/scryvex" \
   --config "\$CFG" \
   --data   "\$DATA" \
-  --port   8080 \
+  --port   1994 \
   2>&1 | tee -a "\$LOGS/scryvex.log" &
 echo \$! >> "\$PIDS"
 
 echo ""
-echo "  ✅ Scryvex corriendo en http://localhost:8080"
+echo "  ✅ Scryvex corriendo en http://localhost:1994"
 echo "  📋 Logs en: \$LOGS/"
 echo "  🛑 Ctrl+C para detener"
 echo ""
@@ -509,7 +509,7 @@ print_summary() {
   echo -e "  ${BOLD}Configuración:${NC}"
   echo -e "  ${CYN}  $CONFIG_DIR/scryvex.yaml${NC}"
   echo ""
-  echo -e "  ${BOLD}UI Web:${NC} ${BLU}http://localhost:8080${NC}"
+  echo -e "  ${BOLD}UI Web:${NC} ${BLU}http://localhost:1994${NC}"
   echo ""
   if $INSTALL_SERVICE; then
     echo -e "  ${GRN}✓${NC} Scryvex se iniciará automáticamente con tu sistema"
@@ -521,8 +521,8 @@ print_summary() {
   if $OPEN_BROWSER && [ -f "$PIDS_FILE" ]; then
     sleep 2
     case "$OS" in
-      darwin) open "http://localhost:8080" ;;
-      linux)  xdg-open "http://localhost:8080" 2>/dev/null || true ;;
+      darwin) open "http://localhost:1994" ;;
+      linux)  xdg-open "http://localhost:1994" 2>/dev/null || true ;;
     esac
   fi
 }
