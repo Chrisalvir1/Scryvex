@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+
+  <!-- Identificador único del daemon -->
+  <key>Label</key>
+  <string>com.scryvex.daemon</string>
+
+  <!-- Ruta al script de inicio -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>SCRYVEX_DIR/start.sh</string>
+  </array>
+
+  <!-- Arrancar automáticamente al encender (sin login) -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <!-- Reiniciar si crashea -->
+  <key>KeepAlive</key>
+  <true/>
+
+  <!-- Directorio de trabajo -->
+  <key>WorkingDirectory</key>
+  <string>SCRYVEX_DIR</string>
+
+  <!-- Variables de entorno -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PORT</key>
+    <string>1994</string>
+    <key>PATH</key>
+    <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>HOME_DIR</string>
+  </dict>
+
+  <!-- Logs del daemon -->
+  <key>StandardOutPath</key>
+  <string>SCRYVEX_DIR/logs/daemon.log</string>
+  <key>StandardErrorPath</key>
+  <string>SCRYVEX_DIR/logs/daemon-error.log</string>
+
+  <!-- Throttle: esperar 10s antes de reintentar si falla -->
+  <key>ThrottleInterval</key>
+  <integer>10</integer>
+
+</dict>
+</plist>
