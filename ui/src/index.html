@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CamBridge — Camera Matter Bridge</title>
+  <meta name="description" content="CamBridge: agrega cualquier cámara a HomeKit, Google Home y Alexa via Matter. UI moderna con Liquid Glass." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="app-shell">
+
+<!-- ── SIDEBAR ─────────────────────────────────────────────────── -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 32 32" fill="none">
+        <circle cx="16" cy="16" r="14" stroke="url(#lg1)" stroke-width="2"/>
+        <circle cx="16" cy="16" r="8" fill="url(#lg2)" opacity="0.8"/>
+        <circle cx="16" cy="16" r="3" fill="#fff"/>
+        <defs>
+          <linearGradient id="lg1" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#60a5fa"/><stop offset="1" stop-color="#a78bfa"/>
+          </linearGradient>
+          <linearGradient id="lg2" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="logo-text">CamBridge</span>
+    <span class="logo-version">v0.2</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a class="nav-item" data-page="cameras" onclick="showPage('cameras',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
+      <span>Cámaras</span>
+      <span class="nav-badge" id="cam-count">0</span>
+    </a>
+    <a class="nav-item" data-page="discover" onclick="showPage('discover',this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+      <span>Descubrir</span>
+    </a>
+    <a class="nav-item" data-page="homekit" onclick="showPage('homekit',this)">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>HomeKit</span>
+    </a>
+    <a class="nav-item" data-page="settings" onclick="showPage('settings',this)">
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96a6.88 6.88 0 00-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.48.48 0 00.12.6l2.03 1.58c-.05.3-.07.62-.07.95 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.04.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+      <span>Ajustes</span>
+    </a>
+    <a class="nav-item admin-only" style="display:none" onclick="openUsersManager()">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span>Usuarios</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-status">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Conectando...</span>
+  </div>
+  <div id="sidebar-user"></div>
+</aside>
+
+<!-- ── MAIN ────────────────────────────────────────────────────── -->
+<main class="main-content">
+
+  <!-- HEADER -->
+  <header class="topbar">
+    <button class="menu-btn" onclick="toggleSidebar()">
+      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+    </button>
+    <h1 class="page-title" id="page-title">Dashboard</h1>
+    <div class="topbar-actions">
+      <button class="btn-glass" onclick="refresh()" title="Actualizar">
+        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
+      <div class="system-time" id="sys-time"></div>
+    </div>
+  </header>
+
+  <!-- ── PAGE: DASHBOARD ──────────────────────────────────────── -->
+  <section class="page active" id="page-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card glass">
+        <div class="stat-icon blue"><svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg></div>
+        <div class="stat-info">
+          <span class="stat-val" id="stat-cams">0</span>
+          <span class="stat-label">Cámaras activas</span>
+        </div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-icon purple"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
+        <div class="stat-info">
+          <span class="stat-val" id="stat-hk">0</span>
+          <span class="stat-label">En HomeKit</span>
+        </div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg></div>
+        <div class="stat-info">
+          <span class="stat-val" id="stat-online">—</span>
+          <span class="stat-label">Estado red</span>
+        </div>
+      </div>
+      <div class="stat-card glass">
+        <div class="stat-icon orange"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
+        <div class="stat-info">
+          <span class="stat-val" id="stat-ver">0.1.0</span>
+          <span class="stat-label">Versión</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-header"><h2>Servicios</h2></div>
+    <div class="services-grid" id="services-grid">
+      <div class="service-card glass" id="svc-api">
+        <div class="svc-dot"></div>
+        <div class="svc-info">
+          <span class="svc-name">Go API Server</span>
+          <span class="svc-port">:8080</span>
+        </div>
+        <span class="svc-status">Chequeando...</span>
+      </div>
+      <div class="service-card glass" id="svc-go2rtc">
+        <div class="svc-dot"></div>
+        <div class="svc-info">
+          <span class="svc-name">go2rtc</span>
+          <span class="svc-port">:1984 / :8554</span>
+        </div>
+        <span class="svc-status">—</span>
+      </div>
+      <div class="service-card glass" id="svc-matter">
+        <div class="svc-dot"></div>
+        <div class="svc-info">
+          <span class="svc-name">Matter Bridge</span>
+          <span class="svc-port">UDP :5580</span>
+        </div>
+        <span class="svc-status">—</span>
+      </div>
+      <div class="service-card glass" id="svc-ai">
+        <div class="svc-dot"></div>
+        <div class="svc-info">
+          <span class="svc-name">AI Engine</span>
+          <span class="svc-port">YoloFastestV2</span>
+        </div>
+        <span class="svc-status">—</span>
+      </div>
+    </div>
+
+    <div class="section-header"><h2>Vista rápida de cámaras</h2></div>
+    <div class="cameras-grid" id="dash-cams">
+      <div class="empty-state glass">
+        <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
+        <p>No hay cámaras configuradas.</p>
+        <button class="btn-primary" onclick="showPage('cameras', document.querySelector('[data-page=cameras]'))">+ Agregar cámara</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PAGE: CAMERAS ─────────────────────────────────────────── -->
+  <section class="page" id="page-cameras">
+    <div class="section-header">
+      <h2>Cámaras configuradas</h2>
+      <button class="btn-primary" onclick="openAddCamera()">+ Agregar</button>
+    </div>
+    <div class="cameras-list" id="cameras-list">
+      <div class="empty-state glass">
+        <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
+        <p>Aún no has agregado cámaras.</p>
+        <p class="hint">Vicohome, Tapo, Reolink, ONVIF, cualquier RTSP...</p>
+        <button class="btn-primary" onclick="openAddCamera()">Agregar primera cámara</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PAGE: DISCOVER ────────────────────────────────────────── -->
+  <section class="page" id="page-discover">
+    <div class="section-header">
+      <h2>Descubrimiento automático</h2>
+      <div style="display:flex; gap:10px">
+        <button class="btn-primary" id="btn-scan" onclick="startScan()">🔍 Escanear red</button>
+        <button class="btn-secondary" id="btn-cloud" onclick="openCloudModal()">☁️ Cámaras Cloud</button>
+      </div>
+    </div>
+    <div class="discover-info glass">
+      <h3>¿Cómo funciona?</h3>
+      <p>CamBridge escanea tu red local buscando cámaras ONVIF, dispositivos Tuya/Vicohome y streams RTSP automáticamente.</p>
+      <div class="protocol-chips">
+        <span class="chip">ONVIF</span>
+        <span class="chip">RTSP</span>
+        <span class="chip">Tuya</span>
+        <span class="chip">Thread/IPv6</span>
+        <span class="chip">HLS</span>
+      </div>
+    </div>
+    <div class="scan-results" id="scan-results"></div>
+  </section>
+
+  <!-- ── PAGE: HOMEKIT ─────────────────────────────────────────── -->
+  <section class="page" id="page-homekit">
+    <div class="section-header"><h2>Emparejamiento HomeKit / Matter</h2></div>
+    <div class="homekit-info glass">
+      <div class="hk-steps">
+        <div class="hk-step">
+          <span class="step-num">1</span>
+          <p>Abre <strong>Casa</strong> en tu iPhone/iPad</p>
+        </div>
+        <div class="hk-step">
+          <span class="step-num">2</span>
+          <p>Toca <strong>+</strong> → <em>Agregar accesorio</em></p>
+        </div>
+        <div class="hk-step">
+          <span class="step-num">3</span>
+          <p>Escanea el <strong>QR</strong> de la cámara</p>
+        </div>
+        <div class="hk-step">
+          <span class="step-num">4</span>
+          <p>Acepta aunque diga "sin certificación"</p>
+        </div>
+      </div>
+    </div>
+    <div class="section-header"><h2>Códigos QR Matter</h2></div>
+    <div class="qr-grid" id="qr-grid">
+      <div class="empty-state glass">
+        <p>Agrega cámaras primero para generar códigos QR Matter.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PAGE: SETTINGS ────────────────────────────────────────── -->
+  <section class="page" id="page-settings">
+    <div class="section-header"><h2>Configuración</h2></div>
+    <div class="settings-grid">
+
+      <div class="settings-card glass">
+        <h3>🌐 Zona horaria</h3>
+        <div class="form-group">
+          <label>TZ</label>
+          <select id="cfg-tz" class="glass-input">
+            <option value="America/Costa_Rica">America/Costa_Rica</option>
+            <option value="America/Mexico_City">America/Mexico_City</option>
+            <option value="America/New_York">America/New_York</option>
+            <option value="America/Los_Angeles">America/Los_Angeles</option>
+            <option value="Europe/Madrid">Europe/Madrid</option>
+            <option value="UTC">UTC</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="settings-card glass">
+        <h3>🏡 Home Assistant MQTT</h3>
+        <div class="form-group">
+          <label>Broker IP</label>
+          <input class="glass-input" id="cfg-mqtt-ip" type="text" placeholder="192.168.1.x" />
+        </div>
+        <div class="form-group">
+          <label>Puerto</label>
+          <input class="glass-input" id="cfg-mqtt-port" type="number" value="1883" />
+        </div>
+        <div class="form-group">
+          <label>Usuario</label>
+          <input class="glass-input" id="cfg-mqtt-user" type="text" placeholder="homeassistant" />
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input class="glass-input" id="cfg-mqtt-pass" type="password" placeholder="••••••••" />
+        </div>
+      </div>
+
+      <div class="settings-card glass">
+        <h3>🔑 Tuya / Vicohome Cloud</h3>
+        <div class="form-group">
+          <label>Client ID</label>
+          <input class="glass-input" id="cfg-tuya-id" type="text" placeholder="xxxxxxxxxxxxxxxxx" />
+        </div>
+        <div class="form-group">
+          <label>Client Secret</label>
+          <input class="glass-input" id="cfg-tuya-secret" type="password" placeholder="••••••••••••••••••••••••" />
+        </div>
+        <div class="form-group">
+          <label>Región</label>
+          <select id="cfg-tuya-region" class="glass-input">
+            <option value="eu">Europa (eu)</option>
+            <option value="us">EEUU (us)</option>
+            <option value="cn">China (cn)</option>
+            <option value="in">India (in)</option>
+          </select>
+        </div>
+        <a class="link-hint" href="https://iot.tuya.com" target="_blank">→ Obtener credenciales en iot.tuya.com</a>
+      </div>
+
+      <div class="settings-card glass">
+        <h3>🤖 AI Engine</h3>
+        <div class="form-group toggle-group">
+          <label>Detección activada</label>
+          <div class="toggle" id="toggle-ai" onclick="toggleAI()"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="form-group">
+          <label>Confianza mínima</label>
+          <input class="glass-input" id="cfg-confidence" type="number" value="0.50" min="0.1" max="1" step="0.05" />
+        </div>
+        <div class="form-group">
+          <label>GPU/Device</label>
+          <select id="cfg-gpu" class="glass-input">
+            <option value="auto">Auto</option>
+            <option value="cpu">CPU (RPi / sin GPU)</option>
+            <option value="coreml">CoreML (Apple Silicon)</option>
+            <option value="openvino">OpenVINO (Intel)</option>
+          </select>
+        </div>
+      </div>
+
+    </div>
+    <div class="settings-actions">
+      <button class="btn-primary" onclick="saveSettings()">💾 Guardar configuración</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- ── MODAL: ADD CAMERA ──────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-add" onclick="closeModal()">
+  <div class="modal glass" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Agregar cámara</h2>
+      <button class="btn-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="cam-type-selector">
+        <button class="type-btn active" data-type="rtsp" onclick="selectType('rtsp',this)">RTSP / ONVIF</button>
+        <button class="type-btn" data-type="tuya" onclick="selectType('tuya',this)">Cámaras Cloud</button>
+        <button class="type-btn" data-type="hls" onclick="selectType('hls',this)">HLS</button>
+      </div>
+
+      <div id="form-rtsp">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input class="glass-input" id="cam-name" type="text" placeholder="" />
+        </div>
+        <div class="form-group">
+          <label>URL RTSP</label>
+          <input class="glass-input" id="cam-url" type="text" placeholder="" />
+        </div>
+        <div class="form-group toggle-group" style="margin-top: 10px;">
+          <label>Activar detección AI</label>
+          <div class="toggle active" id="toggle-cam-ai" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+
+      <div id="form-tuya" style="display:none">
+        <div class="form-group">
+          <label>Marca / Plataforma</label>
+          <select id="cam-cloud-brand" class="glass-input">
+            <option value="Vicohome">Vicohome</option>
+            <option value="Google Nest">Google Nest</option>
+            <option value="Ring">Ring</option>
+            <option value="Tuya">Tuya / SmartLife</option>
+            <option value="Tapo">Tapo</option>
+            <option value="Ezviz">Ezviz</option>
+            <option value="Nooie">Nooie</option>
+            <option value="Wyze">Wyze</option>
+            <option value="Aqara">Aqara</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Email / Usuario</label>
+          <input class="glass-input" id="cam-vico-user" type="email" placeholder="" />
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input class="glass-input" id="cam-vico-pass" type="password" placeholder="" />
+        </div>
+        <button class="btn-primary" onclick="fetchCloudCameras()" style="margin-top:8px; padding: 12px; background: linear-gradient(135deg, #10b981, #059669);">
+          Conectar y Buscar Cámaras
+        </button>
+        <div id="vico-results" style="display:none; margin-top:12px; flex-direction:column; gap:8px;"></div>
+      </div>
+
+      <div id="form-hls" style="display:none">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input class="glass-input" id="cam-hls-name" type="text" placeholder="Cámara HLS" />
+        </div>
+        <div class="form-group">
+          <label>URL HLS (.m3u8)</label>
+          <input class="glass-input" id="cam-hls-url" type="text" placeholder="http://...stream.m3u8" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" onclick="addCamera()">+ Agregar cámara</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ──────────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
+</div><!-- end app-shell -->

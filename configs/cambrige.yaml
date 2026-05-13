@@ -1,0 +1,61 @@
+# CamBridge — Configuración principal
+server:
+  port: 8080
+  data_dir: /data
+  log_level: info
+
+matter:
+  enabled:  true
+  port:     5580
+  vid:      65521   # 0xFFF1 (test, cambiar por VID certificado)
+  pid:      32768   # 0x8000
+  name:     "CamBridge Hub"
+
+thread:
+  enabled:  true
+  # tbr_address: "fd00::1"  # dejar vacío para auto-descubrir
+
+homeassistant:
+  enabled:     false
+  mqtt_broker: "192.168.1.x"  # ← cambiar a IP de tu broker
+  mqtt_port:   1883
+  mqtt_user:   ""
+  mqtt_pass:   ""
+  topic_prefix: "homeassistant"
+  discovery:   true
+
+tuya:
+  enabled:       false
+  client_id:     ""
+  client_secret: ""
+  region:        eu   # opciones: cn, us, eu, in
+
+ai:
+  enabled:    true
+  confidence: 0.50
+  gpu_device: auto  # auto | cpu | coreml | openvino
+  model_path: /app/ai_engine/models/yolo-fastest.param
+  classes:
+    - person
+    - car
+    - truck
+    - motorcycle
+    - dog
+    - cat
+
+storage:
+  recordings: /data/recordings
+  snapshots:  /data/snapshots
+  retention_days: 7
+
+cameras: []
+  # Ejemplo:
+  # - id: cam-front
+  #   name: "Cámara Frontal"
+  #   url: "rtsp://user:pass@192.168.1.100:554/stream1"
+  #   type: rtsp     # rtsp | onvif | tuya | thread | hls
+  #   enabled: true
+  #   ai: true
+  #   zones:
+  #     - name: entrada
+  #       points: [[0,0],[640,0],[640,360],[0,360]]
