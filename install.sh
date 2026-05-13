@@ -1,8 +1,12 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────
 # Scryvex — Instalador nativo macOS
-# Instala dependencias + registra LaunchDaemon (arranque sin login)
+# Instala dependencias, compila y registra LaunchDaemon
+# para que Scryvex arranque automáticamente sin necesidad
+# de iniciar sesión en el Mac.
+#
 # Uso: sudo ./install.sh
+# Para desinstalar: sudo ./uninstall.sh
 # ─────────────────────────────────────────────────────────────────
 set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,46 +19,50 @@ die()  { echo -e "${RED}❌ $1${NC}"; exit 1; }
 
 echo -e "${BLUE}"
 echo "  ╔═════════════════════════════════════════╗"
-echo "  ║   🎥 Scryvex Installer v0.1.1        ║"
-echo "  ║   Modo nativo macOS (sin Docker)  ║"
+echo "  ║  🎥  Scryvex Installer v0.1.1          ║"
+echo "  ║  Modo nativo macOS (sin Docker)     ║"
 echo "  ╚═════════════════════════════════════════╝"
 echo -e "${NC}"
 
-# ─────────────────────────────────────────────────────────────────
-# 0. Verificar que es macOS
+# ── 0. Verificar macOS y permisos sudo ─────────────────────────────
 [ "$(uname)" = "Darwin" ] || die "Este instalador es solo para macOS"
+[ "$(id -u)" = "0" ]     || die "Ejecuta con sudo: sudo ./install.sh"
 
 ARCH=$(uname -m)
-HOME_DIR=$(eval echo ~${SUDO_USER:-$USER})
-info "Arquitectura: $ARCH | Usuario: ${SUDO_USER:-$USER} | Home: $HOME_DIR"
+REAL_USER=${SUDO_USER:-$USER}
+HOME_DIR=$(eval echo ~"$REAL_USER")
+info "Arquitectura: $ARCH | Usuario: $REAL_USER | Home: $HOME_DIR"
 
-# ─────────────────────────────────────────────────────────────────
-# 1. Homebrew
-if ! command -v brew &>/dev/null; then
+# ── 1. Homebrew ──────────────────────────────────────────────────
+if ! sudo -u "$REAL_USER" command -v brew &>/dev/null; then
   info "Instalando Homebrew..."
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  sudo -u "$REAL_USER" /bin/bash -c \
+    "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+# Asegurar que brew esté en PATH para los siguientes pasos
+if [ -f "/opt/homebrew/bin/brew" ]; then
+  export PATH="/opt/homebrew/bin:$PATH"
 fi
 ok "Homebrew disponible"
 
-# ─────────────────────────────────────────────────────────────────
-# 2. Node.js (para matter-bridge)
+# ── 2. Node.js ────────────────────────────────────────────────────
 if ! command -v node &>/dev/null; then
   info "Instalando Node.js v20..."
-  brew install node@20
-  brew link node@20 --force --overwrite
+  sudo -u "$REAL_USER" brew install node@20
+  sudo -u "$REAL_USER" brew link node@20 --force --overwrite 2>/dev/null || true
+  export PATH="/opt/homebrew/opt/node@20/bin:$PATH"
 fi
 ok "Node.js $(node --version) disponible"
 
-# ─────────────────────────────────────────────────────────────────
-# 3. Go (para compilar el servidor)
+# ── 3. Go ────────────────────────────────────────────────────────────
 if ! command -v go &>/dev/null; then
   info "Instalando Go..."
-  brew install go
+  sudo -u "$REAL_USER" brew install go
+  export PATH="/opt/homebrew/opt/go/bin:$PATH"
 fi
 ok "Go $(go version | awk '{print $3}') disponible"
 
-# ─────────────────────────────────────────────────────────────────
-# 4. Descargar go2rtc nativo macOS
+# ── 4. go2rtc nativo macOS ──────────────────────────────────────────
 mkdir -p "$SCRIPT_DIR/bin"
 GO2RTC_BIN="$SCRIPT_DIR/bin/go2rtc"
 if [ ! -f "$GO2RTC_BIN" ]; then
@@ -64,62 +72,71 @@ if [ ! -f "$GO2RTC_BIN" ]; then
   else
     GO2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_mac_amd64"
   fi
-  curl -L "$GO2RTC_URL" -o "$GO2RTC_BIN"
+  curl -fsSL "$GO2RTC_URL" -o "$GO2RTC_BIN"
   chmod +x "$GO2RTC_BIN"
 fi
 ok "go2rtc listo en bin/go2rtc"
 
-# ─────────────────────────────────────────────────────────────────
-# 5. Compilar scryvex-server
+# ── 5. Compilar scryvex-server ─────────────────────────────────────────
 info "Compilando scryvex-server..."
+mkdir -p "$SCRIPT_DIR/build"
 cd "$SCRIPT_DIR"
-go build -o build/scryvex-server ./cmd/server/
+sudo -u "$REAL_USER" go build -o build/scryvex-server ./cmd/server/
 chmod +x build/scryvex-server
 ok "scryvex-server compilado"
 
-# ─────────────────────────────────────────────────────────────────
-# 6. Instalar dependencias matter-bridge
+# ── 6. Instalar dependencias matter-bridge ─────────────────────────
 if [ -f "$SCRIPT_DIR/matter-bridge/package.json" ]; then
   info "Instalando dependencias matter-bridge..."
   cd "$SCRIPT_DIR/matter-bridge"
-  npm install --omit=dev --silent
-  ok "matter-bridge dependencias instaladas"
+  sudo -u "$REAL_USER" npm install --omit=dev --silent
+  cd "$SCRIPT_DIR"
+  ok "matter-bridge listo"
 fi
-cd "$SCRIPT_DIR"
 
-# ─────────────────────────────────────────────────────────────────
-# 7. Registrar LaunchDaemon (arranque sin login)
+# ── 7. Crear directorios de datos y logs ──────────────────────────
+mkdir -p \
+  "$SCRIPT_DIR/logs" \
+  "$SCRIPT_DIR/data/matter/certs" \
+  "$SCRIPT_DIR/data/matter/fabrics" \
+  "$SCRIPT_DIR/data/recordings"
+chown -R "$REAL_USER" "$SCRIPT_DIR/logs" "$SCRIPT_DIR/data" "$SCRIPT_DIR/build" "$SCRIPT_DIR/bin"
+ok "Directorios creados"
+
+# ── 8. Registrar LaunchDaemon (arranque automático sin login) ────────
 PLIST_NAME="com.scryvex.daemon"
 PLIST_DEST="/Library/LaunchDaemons/${PLIST_NAME}.plist"
+info "Instalando LaunchDaemon en $PLIST_DEST ..."
 
-info "Registrando LaunchDaemon en $PLIST_DEST ..."
-
-# Rellenar rutas reales en el plist
+# Inyectar rutas reales al template
 sed \
   -e "s|SCRYVEX_DIR|${SCRIPT_DIR}|g" \
   -e "s|HOME_DIR|${HOME_DIR}|g" \
+  -e "s|REAL_USER|${REAL_USER}|g" \
   "$SCRIPT_DIR/packaging/com.scryvex.daemon.plist" > "$PLIST_DEST"
 
 chmod 644 "$PLIST_DEST"
 chown root:wheel "$PLIST_DEST"
 
-# Descargar el daemon anterior si ya estaba cargado
+# Recargar si ya existía una versión anterior
 launchctl unload "$PLIST_DEST" 2>/dev/null || true
-# Cargar y arrancar ahora mismo
 launchctl load -w "$PLIST_DEST"
-ok "LaunchDaemon registrado y activo"
+ok "LaunchDaemon instalado y activo"
 
-# ─────────────────────────────────────────────────────────────────
+# ── Resumen final ───────────────────────────────────────────────────
 echo ""
 echo -e "${GREEN}══════════════════════════════════════════${NC}"
-echo -e "${GREEN}  ✅ Scryvex instalado como daemon del sistema${NC}"
+echo -e "${GREEN}  ✅ Scryvex instalado correctamente${NC}"
 echo -e "${GREEN}══════════════════════════════════════════${NC}"
 echo ""
-echo "  Arrancar ahora:   sudo launchctl start com.scryvex.daemon"
-echo "  Detener ahora:    sudo launchctl stop  com.scryvex.daemon"
-echo "  Ver logs:         tail -f $SCRIPT_DIR/logs/daemon.log"
-echo "  UI:               http://localhost:1994"
+echo "  UI:              http://localhost:1994"
+echo "  Logs:            $SCRIPT_DIR/logs/"
 echo ""
-echo "  Al reiniciar el Mac, Scryvex arranca automáticamente"
-echo "  SIN necesidad de iniciar sesión."
+echo "  Scryvex ya está corriendo ahora mismo."
+echo "  La próxima vez que enciendas el Mac arrancará automáticamente."
+echo ""
+echo "  Comandos útiles:"
+echo "    sudo launchctl start com.scryvex.daemon   # arrancar manualmente"
+echo "    sudo launchctl stop  com.scryvex.daemon   # detener manualmente"
+echo "    sudo ./uninstall.sh                       # desinstalar todo"
 echo ""
