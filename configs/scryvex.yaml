@@ -1,0 +1,96 @@
+# CamBridge v0.1.0 — Configuración principal
+# ─────────────────────────────────────────────────────────────────────
+
+server:
+  port:      8080
+  data_dir:  /data
+  log_level: info
+
+# ── Matter (QR codes para HomeKit / Google Home / Alexa / SmartThings) ──
+matter:
+  enabled: true
+  port:    5580
+  vid:     65521    # 0xFFF1 → test vendor (no requiere certificación)
+  pid:     32768    # 0x8000
+  name:    "CamBridge Hub"
+
+# ── Thread Border Router (auto-descubrir) ────────────────────────────────
+thread:
+  enabled: true
+  # tbr_address: ""  # vacío = auto-descubrir en la red local
+
+# ── Home Assistant — MQTT Discovery ──────────────────────────────────────
+homeassistant:
+  enabled:      false          # ← cambiar a true cuando configures MQTT
+  mqtt_broker:  "192.168.1.x" # ← IP de tu broker MQTT (HA o Mosquitto)
+  mqtt_port:    1883
+  mqtt_user:    ""
+  mqtt_pass:    ""
+  topic_prefix: "homeassistant"
+  discovery:    true
+
+# ── VicoHome Cloud Integration ────────────────────────────────────────────
+# VicoHome NO tiene RTSP/ONVIF/stream local (Mayo 2026).
+# Lo que funciona: eventos + snapshots vía su cloud API.
+# Referencia: github.com/dydx/vico-cli (reverse engineering confirmado)
+vicohome:
+  enabled:       false         # ← cambiar a true y completar credenciales
+  email:         ""            # ← tu email de la app VicoHome
+  password:      ""            # ← tu password de la app VicoHome
+  region:        "us"          # "us" para Costa Rica / Américas, "eu" para Europa
+  poll_interval: 30s           # cada cuánto preguntar al cloud por eventos nuevos
+  snapshot_dir:  /data/snapshots/vicohome
+
+  # Qué hacer con los eventos:
+  notifications:
+    mqtt:     true             # publicar en MQTT → HA ve snapshot + motion sensor
+    telegram: false            # opcional: enviar foto a Telegram
+    telegram_token:   ""
+    telegram_chat_id: ""
+
+# ── Tuya (para cámaras Tuya / Smart Life con ONVIF habilitado) ───────────
+tuya:
+  enabled:       false
+  client_id:     ""
+  client_secret: ""
+  region:        eu
+
+# ── IA Local ──────────────────────────────────────────────────────────────
+ai:
+  enabled:    true
+  confidence: 0.50
+  gpu_device: auto              # auto | cpu | coreml (Apple Silicon) | openvino (Intel)
+  model_path: /app/ai_engine/models/yolo-fastest.param
+  classes:
+    - person
+    - car
+    - truck
+    - motorcycle
+    - dog
+    - cat
+
+# ── Almacenamiento ────────────────────────────────────────────────────────
+storage:
+  recordings:     /data/recordings
+  snapshots:      /data/snapshots
+  retention_days: 7
+
+# ── Cámaras manuales (RTSP, ONVIF, HLS) ─────────────────────────────────
+cameras: []
+  # Ejemplo RTSP:
+  # - id:      cam-frontal
+  #   name:    "Cámara Frontal"
+  #   url:     "rtsp://user:pass@192.168.1.100:554/stream1"
+  #   type:    rtsp
+  #   enabled: true
+  #   ai:      true
+  #
+  # Ejemplo ONVIF:
+  # - id:      cam-patio
+  #   name:    "Patio"
+  #   host:    "192.168.1.101"
+  #   port:    80
+  #   user:    admin
+  #   pass:    "tu_password"
+  #   type:    onvif
+  #   enabled: true

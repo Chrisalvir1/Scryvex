@@ -1,0 +1,35 @@
+# Binarios compilados
+dist/
+*.exe
+scryvex-macos-*
+scryvex-linux-*
+scryvex-windows-*
+
+# Datos y configuración local
+data/
+.pids
+logs/
+
+# Go
+*.test
+vendor/
+
+# macOS
+.DS_Store
+__MACOSX/
+
+# Windows
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Python (AI engine)
+__pycache__/
+ai_engine/venv/
+ai_engine/*.pyc
+
+# Version tracking (generado al instalar)
+.version

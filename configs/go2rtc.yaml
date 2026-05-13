@@ -1,0 +1,20 @@
+# go2rtc config — CamBridge
+api:
+  listen: ":1984"
+  origin: "*"
+
+rtsp:
+  listen: ":8554"
+
+webrtc:
+  listen: ":8555"
+  ice_servers:
+    - urls: [stun:stun.l.google.com:19302]
+
+# Las cámaras se registran dinámicamente via API go2rtc
+# POST http://localhost:1984/api/streams
+# { "name": "cam1", "src": "rtsp://..." }
+streams: {}
+
+log:
+  level: warn

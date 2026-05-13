@@ -1,0 +1,89 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build binaries
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: darwin   goarch: arm64   name: macos-arm64
+          - goos: darwin   goarch: amd64   name: macos-x86_64
+          - goos: linux    goarch: amd64   name: linux-amd64
+          - goos: linux    goarch: arm64   name: linux-arm64
+          - goos: linux    goarch: arm     goarm: 7   name: linux-armv7
+          - goos: windows  goarch: amd64   name: windows-amd64   ext: .exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+          cache: true
+
+      - name: Build ${{ matrix.name }}
+        env:
+          GOOS:   ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM:  ${{ matrix.goarm || '' }}
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+          DATE=$(date -u +%Y%m%d)
+          go build \
+            -ldflags="-s -w -X main.version=${VERSION} -X main.buildDate=${DATE}" \
+            -o dist/scryvex-${{ matrix.name }}${{ matrix.ext || '' }} \
+            ./cmd/server
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scryvex-${{ matrix.name }}
+          path: dist/scryvex-${{ matrix.name }}${{ matrix.ext || '' }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Generar checksums
+        run: |
+          cd dist
+          sha256sum scryvex-* > sha256sums.txt
+          cat sha256sums.txt
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/scryvex-*
+            dist/sha256sums.txt
+          body: |
+            ## Scryvex ${{ github.ref_name }}
+
+            ### Instalación (una línea)
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/Chrisalvir1/Scryvex/main/scripts/install.sh | bash
+            ```
+
+            ### Binarios disponibles
+            | Plataforma | Archivo |
+            |---|---|
+            | macOS Apple Silicon | `scryvex-macos-arm64` |
+            | macOS Intel | `scryvex-macos-x86_64` |
+            | Linux x86_64 | `scryvex-linux-amd64` |
+            | Linux ARM64 | `scryvex-linux-arm64` |
+            | Raspberry Pi (ARMv7) | `scryvex-linux-armv7` |
+            | Windows x64 | `scryvex-windows-amd64.exe` |
+
+            Verifica la integridad con `sha256sums.txt`.
