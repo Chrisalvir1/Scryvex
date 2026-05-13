@@ -8,24 +8,23 @@
   <key>Label</key>
   <string>com.scryvex.daemon</string>
 
-  <!-- Ruta al script de inicio -->
+  <!-- Ejecuta el lanzador instalado en ~/.scryvex -->
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>SCRYVEX_DIR/start.sh</string>
+    <string>HOME_DIR/.scryvex/bin/scryvex-start</string>
   </array>
 
-  <!-- Arrancar automáticamente al encender (sin login) -->
+  <!-- Arrancar al encender, antes de login -->
   <key>RunAtLoad</key>
   <true/>
 
-  <!-- Reiniciar si crashea -->
+  <!-- Reiniciar automáticamente si crashea -->
   <key>KeepAlive</key>
   <true/>
 
-  <!-- Directorio de trabajo -->
   <key>WorkingDirectory</key>
-  <string>SCRYVEX_DIR</string>
+  <string>HOME_DIR/.scryvex</string>
 
   <!-- Variables de entorno -->
   <key>EnvironmentVariables</key>
@@ -38,11 +37,10 @@
     <string>HOME_DIR</string>
   </dict>
 
-  <!-- Logs del daemon -->
   <key>StandardOutPath</key>
-  <string>SCRYVEX_DIR/logs/daemon.log</string>
+  <string>HOME_DIR/.scryvex/logs/daemon.log</string>
   <key>StandardErrorPath</key>
-  <string>SCRYVEX_DIR/logs/daemon-error.log</string>
+  <string>HOME_DIR/.scryvex/logs/daemon-error.log</string>
 
   <!-- Throttle: esperar 10s antes de reintentar si falla -->
   <key>ThrottleInterval</key>

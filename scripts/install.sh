@@ -157,16 +157,26 @@ install_go2rtc() {
 
   info "Descargando go2rtc (motor de streams)..."
 
+  G2RTC_IS_ZIP=false
   case "$PLATFORM" in
-    macos-arm64)   G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_mac_arm64" ;;
-    macos-x86_64)  G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_mac_amd64" ;;
+    macos-arm64)   G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_mac_arm64.zip"   ; G2RTC_IS_ZIP=true ;;
+    macos-x86_64)  G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_mac_amd64.zip"   ; G2RTC_IS_ZIP=true ;;
     linux-amd64)   G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_linux_amd64" ;;
     linux-arm64)   G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_linux_arm64" ;;
     linux-armv7)   G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_linux_arm" ;;
-    windows*)      G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_win64.zip" ;;
+    windows*)      G2RTC_URL="https://github.com/AlexxIT/go2rtc/releases/latest/download/go2rtc_win64.zip"       ; G2RTC_IS_ZIP=true ;;
   esac
 
-  curl -fsSL --progress-bar "$G2RTC_URL" -o "$G2RTC_BIN" && chmod +x "$G2RTC_BIN"
+  if [ "$G2RTC_IS_ZIP" = true ]; then
+    TMP_ZIP="$(mktemp /tmp/go2rtc_XXXXXX.zip)"
+    curl -fsSL --progress-bar -L "$G2RTC_URL" -o "$TMP_ZIP"
+    unzip -o -j "$TMP_ZIP" 'go2rtc' -d "$G2RTC_DIR" 2>/dev/null || \
+      unzip -o -j "$TMP_ZIP" '*/go2rtc' -d "$G2RTC_DIR"
+    rm -f "$TMP_ZIP"
+  else
+    curl -fsSL --progress-bar -L "$G2RTC_URL" -o "$G2RTC_BIN"
+  fi
+  chmod +x "$G2RTC_BIN"
   ok "go2rtc instalado"
 }
 
