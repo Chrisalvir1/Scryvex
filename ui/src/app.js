@@ -352,7 +352,7 @@ function saveNewCamera(cam) {
 // ── Brand Plugin System ────────────────────────────────────────
 const BRAND_PLUGINS = {
   'Tuya': {
-    logo: '🏠', name: 'Tuya / Smart Life',
+    logo: 'https://logo.clearbit.com/tuya.com', name: 'Tuya / Smart Life',
     desc: 'Usa tu cuenta de Tuya Smart o Smart Life. Cubre Tuya, Vicohome y cientos de marcas.',
     fields: [
       { id: 'cloud-user', label: 'Email', type: 'email', ph: 'tu@email.com' },
@@ -363,7 +363,7 @@ const BRAND_PLUGINS = {
     api: 'tuya',
   },
   'Vicohome': {
-    logo: '📹', name: 'Vicohome',
+    logo: 'https://logo.clearbit.com/vicohome.io', name: 'Vicohome',
     desc: 'Vicohome usa servidores Tuya. Inicia sesión con tu cuenta de la app Vicohome.',
     fields: [
       { id: 'cloud-user', label: 'Email de Vicohome', type: 'email', ph: 'tu@email.com' },
@@ -373,7 +373,7 @@ const BRAND_PLUGINS = {
     api: 'vicohome',
   },
   'Ring': {
-    logo: '🔔', name: 'Ring (Amazon)',
+    logo: 'https://logo.clearbit.com/ring.com', name: 'Ring (Amazon)',
     desc: 'Importa doorbells y cámaras Ring con tu cuenta de Amazon.',
     fields: [
       { id: 'cloud-user', label: 'Email de Ring', type: 'email', ph: 'tu@email.com' },
@@ -384,7 +384,7 @@ const BRAND_PLUGINS = {
     api: 'ring',
   },
   'Tapo': {
-    logo: '🔗', name: 'Tapo / TP-Link',
+    logo: 'https://logo.clearbit.com/tp-link.com', name: 'Tapo / TP-Link',
     desc: 'Importa cámaras Tapo C120, C400, C420 y más con tu cuenta TP-Link.',
     fields: [
       { id: 'cloud-user', label: 'Email de TP-Link', type: 'email', ph: 'tu@email.com' },
@@ -394,7 +394,7 @@ const BRAND_PLUGINS = {
     api: 'tapo',
   },
   'Ezviz': {
-    logo: '🛡️', name: 'Ezviz (Hikvision)',
+    logo: 'https://logo.clearbit.com/ezvizlife.com', name: 'Ezviz (Hikvision)',
     desc: 'Importa cámaras Ezviz con tu cuenta de la app.',
     fields: [
       { id: 'cloud-user', label: 'Email de Ezviz', type: 'email', ph: 'tu@email.com' },
@@ -404,7 +404,7 @@ const BRAND_PLUGINS = {
     api: 'ezviz',
   },
   'Wyze': {
-    logo: '👁️', name: 'Wyze',
+    logo: 'https://logo.clearbit.com/wyze.com', name: 'Wyze',
     desc: 'Conecta cámaras Wyze Cam con tu cuenta Wyze.',
     fields: [
       { id: 'cloud-user', label: 'Email de Wyze', type: 'email', ph: 'tu@email.com' },
@@ -415,7 +415,7 @@ const BRAND_PLUGINS = {
     api: 'wyze',
   },
   'Google Nest': {
-    logo: '🌐', name: 'Google Nest',
+    logo: 'https://cdn.simpleicons.org/googlenest', name: 'Google Nest',
     desc: 'Conecta cámaras Nest vía Google Device Access API.',
     fields: [
       { id: 'cloud-project', label: 'Project ID', type: 'text', ph: 'enterprise/abc123...' },
@@ -425,7 +425,7 @@ const BRAND_PLUGINS = {
     api: 'nest',
   },
   'Aqara': {
-    logo: '🌿', name: 'Aqara',
+    logo: 'https://logo.clearbit.com/aqara.com', name: 'Aqara',
     desc: 'Importa cámaras y hubs Aqara G3, G2H, E1 con tu cuenta de la app.',
     fields: [
       { id: 'cloud-user', label: 'Email de Aqara', type: 'email', ph: 'tu@email.com' },
@@ -436,7 +436,7 @@ const BRAND_PLUGINS = {
     api: 'aqara',
   },
   'Vimtag': {
-    logo: '📦', name: 'Vimtag / Fujikam',
+    logo: 'https://logo.clearbit.com/vimtag.com', name: 'Vimtag / Fujikam',
     desc: 'Conecta cámaras Vimtag y Fujikam con tu cuenta de la app.',
     fields: [
       { id: 'cloud-user', label: 'Usuario/Email', type: 'text', ph: 'usuario' },
