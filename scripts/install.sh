@@ -98,16 +98,8 @@ check_deps() {
 
 # ── Obtener versión latest ────────────────────────────────────────────────────
 get_version() {
-  if [ -n "${FORCE_VERSION:-}" ]; then
-    VERSION="$FORCE_VERSION"
-  else
-    info "Consultando última versión..."
-    VERSION=$(curl -fsSL "$GITHUB_API" 2>/dev/null \
-      | grep '"tag_name"' \
-      | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' \
-      || echo "")
-    [ -z "$VERSION" ] && VERSION="v1.0.0"
-  fi
+  # Forzar versión 1.0.0 para ignorar releases antiguos de GitHub
+  VERSION="v1.0.0"
   ok "Versión: ${BOLD}${VERSION}${NC}"
 }
 
