@@ -16,28 +16,10 @@ let aiEnabled = true;
 
 // ── Init ──────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-  if (!authToken) {
-    showLoginScreen();
-    return;
-  }
-  // Verificar que el token sigue válido
-  fetch(API + '/api/auth/me', { headers: getHeaders() })
-    .then(r => {
-      if (!r.ok) throw new Error('Token inválido');
-      return r.json();
-    })
-    .then(user => {
-      authUser = user;
-      localStorage.setItem('cb_user', JSON.stringify(user));
-      bootApp();
-    })
-    .catch(() => {
-      authToken = '';
-      authUser = null;
-      localStorage.removeItem('cb_token');
-      localStorage.removeItem('cb_user');
-      showLoginScreen();
-    });
+  // Bypass authentication for Scryvex native version
+  authToken = 'scryvex-local-token';
+  authUser = { username: 'admin', role: 'admin' };
+  bootApp();
 });
 
 function bootApp() {
