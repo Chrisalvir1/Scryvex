@@ -152,8 +152,9 @@ func wsDiscovery() {
 						}
 					}
 
-					if name == "" {
-						name = "Cámara " + manufacturer
+					brand := normalizeBrand(manufacturer)
+					if name == "" || name == "IPCAM" || name == "Cámara ONVIF" || strings.Contains(name, "Network Video Transmitter") {
+						name = "Cámara " + brand
 					}
 					
 					xaddr := xmlVal(resp, "d:XAddrs")
@@ -163,11 +164,14 @@ func wsDiscovery() {
 					}
 					
 					mac := getMAC(ip)
+					if brand == "Onvif" {
+						brand = guessBrand(mac, 0)
+					}
 					
 					dev := &Device{
 						ID: "onvif-" + ip, Name: name, IP: ip, MAC: mac,
 						Protocol: "onvif", StreamURL: streamURL,
-						IsNativeRTSP: true, Manufacturer: manufacturer,
+						IsNativeRTSP: true, Manufacturer: brand,
 					}
 					mu.Lock()
 					found[ip] = dev
@@ -206,7 +210,7 @@ func tcpPortScan() {
 				defer wg.Done()
 				defer func() { <-sem }()
 				for _, p := range cameraPorts {
-					conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", ip, p.port), 600*time.Millisecond)
+					conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", ip, p.port), 1*time.Second)
 					if err == nil {
 						conn.Close()
 						
@@ -300,32 +304,47 @@ func xmlVal(xml, tag string) string {
 	return strings.TrimSpace(xml[start : start+end])
 }
 
+func normalizeBrand(s string) string {
+	s = strings.ToLower(s)
+	if strings.Contains(s, "tp-link") || strings.Contains(s, "tapo") { return "Tapo" }
+	if strings.Contains(s, "hikvision") || strings.Contains(s, "ezviz") { return "Ezviz / Hikvision" }
+	if strings.Contains(s, "vicohome") || strings.Contains(s, "vico") { return "Vicohome" }
+	if strings.Contains(s, "ring") { return "Ring" }
+	if strings.Contains(s, "aqara") || strings.Contains(s, "lumi") { return "Aqara" }
+	if strings.Contains(s, "tuya") || strings.Contains(s, "smartlife") { return "Tuya" }
+	return strings.Title(s)
+}
+
 func getMAC(ip string) string {
 	out, _ := exec.Command("arp", "-n", ip).Output()
 	s := string(out)
-	// Formato macOS: (192.168.1.1) at a4:c1:38:xx:xx:xx on en0 [ethernet]
 	re := regexp.MustCompile(`([0-9a-fA-F]{1,2}:){5}[0-9a-fA-F]{1,2}`)
 	return re.FindString(s)
 }
 
 func guessBrand(mac string, port int) string {
-	mac = strings.ToLower(mac)
-	if strings.HasPrefix(mac, "a4:c1:38") || strings.HasPrefix(mac, "cc:32:e5") || strings.HasPrefix(mac, "00:31:92") {
-		return "Tapo / TP-Link"
-	}
-	if strings.HasPrefix(mac, "e0:62:90") || strings.HasPrefix(mac, "44:01:bb") {
-		return "Vicohome / VStarcam"
-	}
-	if strings.HasPrefix(mac, "bc:33:ac") || strings.HasPrefix(mac, "c0:e7:bf") {
-		return "Hikvision"
-	}
-	if strings.HasPrefix(mac, "3c:e1:a1") || strings.HasPrefix(mac, "00:12:12") {
-		return "Dahua"
-	}
-	if strings.HasPrefix(mac, "f4:b3:01") {
-		return "Ring"
-	}
+	mac = strings.ReplaceAll(strings.ToLower(mac), ":", "")
+	if mac == "" { return "Cámara Genérica" }
 	
+	// OUIs Expandidos
+	tapo := []string{"a4c138", "cc32e5", "003192", "3460f9", "482254", "50c7bf", "60e327", "704f57", "74da38", "8416f9", "98dac4", "a42bb0", "b04e26", "c025e9", "d80737", "e894f6", "f4f26d"}
+	for _, p := range tapo { if strings.HasPrefix(mac, p) { return "Tapo / TP-Link" } }
+	
+	hik := []string{"00408c", "443275", "8ce748", "a41437", "bcad28", "c056e3", "d47aa2", "f4b520", "bc33ac", "c0e7bf"}
+	for _, p := range hik { if strings.HasPrefix(mac, p) { return "Ezviz / Hikvision" } }
+	
+	ring := []string{"044eaf", "08a335", "14b457", "2046f9", "3c71bf", "441793", "54e019", "b4e1eb", "ec71db", "f4b301"}
+	for _, p := range ring { if strings.HasPrefix(mac, p) { return "Ring" } }
+	
+	aqara := []string{"00158d", "04cf8c", "54ef44", "b4e842", "e4aaea"}
+	for _, p := range aqara { if strings.HasPrefix(mac, p) { return "Aqara" } }
+	
+	tuya := []string{"105a17", "2c3ae8", "508a06", "68572d", "7c25da", "84e342", "a4cf12", "d4a651", "e0508b"}
+	for _, p := range tuya { if strings.HasPrefix(mac, p) { return "Tuya / Smart Life" } }
+	
+	vico := []string{"4401bb", "e06290"}
+	for _, p := range vico { if strings.HasPrefix(mac, p) { return "Vicohome" } }
+
 	if port == 8000 { return "Hikvision?" }
 	if port == 37777 { return "Dahua?" }
 	if port == 2020 { return "ONVIF Cam" }
