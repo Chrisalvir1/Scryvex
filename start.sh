@@ -27,7 +27,7 @@ fi
 
 echo -e "${BLUE}"
 echo "  ╔═════════════════════════════════════════╗"
-echo "  ║  🎥  Scryvex v0.1.1                       ║"
+echo "  ║  🎥  Scryvex v1.0.0                       ║"
 echo "  ║  Modo: 100% nativo macOS              ║"
 echo "  ╚═════════════════════════════════════════╝"
 echo -e "${NC}"

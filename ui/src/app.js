@@ -12,6 +12,28 @@ function lsRemove(key) {
   try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
 }
 
+// ── Migration Logic (Legacy CamBridge -> Scryvex) ──────────
+(function migrateLegacyKeys() {
+  const keys = ['token', 'user', 'cameras', 'config', 'ring_token'];
+  keys.forEach(k => {
+    const oldKey = 'cb_' + k;
+    const newKey = 'scryvex_' + k;
+    const val = localStorage.getItem(oldKey);
+    if (val && !localStorage.getItem(newKey)) {
+      localStorage.setItem(newKey, val);
+    }
+  });
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('cb_cloud_')) {
+      const newKey = key.replace('cb_cloud_', 'scryvex_cloud_');
+      if (!localStorage.getItem(newKey)) {
+        localStorage.setItem(newKey, localStorage.getItem(key));
+      }
+    }
+  }
+})();
+
 // ── Auth State ────────────────────────────────────────────────
 let authToken = lsGet('scryvex_token', '');
 let authUser = JSON.parse(lsGet('scryvex_user', 'null'));
