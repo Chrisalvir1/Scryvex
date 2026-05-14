@@ -1,21 +1,31 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import './App.css'
 import './Modal.css'
 import './Views.css'
+import './Player.css'
 
 function App() {
   const [status, setStatus] = useState<any>(null)
+  const [systemInfo, setSystemInfo] = useState({ cpu: 0, memory: 0 })
   const [showAddModal, setShowAddModal] = useState(false)
   const [cameras, setCameras] = useState<any[]>([])
   const [newCam, setNewCam] = useState({ name: '', url: '', type: 'rtsp' })
   const [currentView, setCurrentView] = useState('dashboard')
+  const [selectedCam, setSelectedCam] = useState<any>(null)
 
   useEffect(() => {
-    const fetchStatus = () => {
-      fetch('http://localhost:1994/api/status')
-        .then(res => res.json())
-        .then(data => setStatus(data))
-        .catch(err => setStatus(null))
+    const fetchData = async () => {
+      try {
+        const sRes = await fetch('http://localhost:1994/api/status')
+        const sData = await sRes.json()
+        setStatus(sData)
+      } catch (e) { setStatus(null) }
+
+      try {
+        const sysRes = await fetch('http://localhost:1994/api/system')
+        const sysData = await sysRes.json()
+        setSystemInfo(sysData)
+      } catch (e) { console.error(e) }
     }
 
     const fetchCameras = () => {
@@ -25,29 +35,35 @@ function App() {
         .catch(err => console.error(err))
     }
     
-    fetchStatus()
+    fetchData()
     fetchCameras()
-    const interval = setInterval(fetchStatus, 5000)
+    const interval = setInterval(fetchData, 3000)
     return () => clearInterval(interval)
   }, [])
 
   const handleAddCamera = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
+      // 1. Guardar en DB
       const res = await fetch('http://localhost:1994/api/cameras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newCam)
       })
+      
       if (res.ok) {
+        // 2. Registrar en go2rtc dinámicamente
+        await fetch(`http://localhost:1984/api/streams?name=${encodeURIComponent(newCam.name)}&src=${encodeURIComponent(newCam.url)}`, {
+          method: 'PUT'
+        })
+
         setShowAddModal(false)
         setNewCam({ name: '', url: '', type: 'rtsp' })
-        // Actualizar lista
         const d = await fetch('http://localhost:1994/api/cameras').then(r => r.json())
         setCameras(d || [])
       }
     } catch (err) {
-      alert('Error connecting to backend')
+      alert('Error saving camera')
     }
   }
 
@@ -74,7 +90,7 @@ function App() {
                     <span className="cam-name">{cam.name}</span>
                     <span className="cam-url">{cam.url.substring(0, 30)}...</span>
                   </div>
-                  <button className="btn-view">VIEW</button>
+                  <button className="btn-view" onClick={() => setSelectedCam(cam)}>VIEW LIVE</button>
                 </div>
               </div>
             ))}
@@ -85,12 +101,12 @@ function App() {
       <div className="glass card stats">
         <h3>System Health</h3>
         <div className="stat-row">
-          <div className="stat-label"><span>CPU Usage</span><span>12%</span></div>
-          <div className="progress-bar"><div className="fill" style={{width: '12%'}}></div></div>
+          <div className="stat-label"><span>CPU Usage</span><span>{Math.round(systemInfo.cpu)}%</span></div>
+          <div className="progress-bar"><div className="fill" style={{width: `${systemInfo.cpu}%`}}></div></div>
         </div>
         <div className="stat-row">
-          <div className="stat-label"><span>Memory</span><span>24%</span></div>
-          <div className="progress-bar"><div className="fill" style={{width: '24%'}}></div></div>
+          <div className="stat-label"><span>Memory</span><span>{Math.round(systemInfo.memory)}%</span></div>
+          <div className="progress-bar"><div className="fill" style={{width: `${systemInfo.memory}%`}}></div></div>
         </div>
       </div>
 
@@ -128,18 +144,11 @@ function App() {
                 <td>{cam.url}</td>
                 <td><span className="dot active"></span> Online</td>
                 <td>
-                  <button className="btn-icon">⚙️</button>
+                  <button className="btn-icon" onClick={() => setSelectedCam(cam)}>👁️</button>
                   <button className="btn-icon red">🗑️</button>
                 </td>
               </tr>
             ))}
-            {cameras.length === 0 && (
-              <tr>
-                <td colSpan={4} style={{textAlign: 'center', padding: '40px', opacity: 0.5}}>
-                  No cameras registered yet.
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
       </div>
@@ -186,6 +195,7 @@ function App() {
         {currentView === 'dashboard' ? renderDashboard() : renderCameras()}
       </main>
 
+      {/* MODAL: ADD CAMERA */}
       {showAddModal && (
         <div className="modal-overlay">
           <div className="glass modal-content">
@@ -216,6 +226,28 @@ function App() {
                 <button type="submit" className="btn-primary">Connect Device</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: PLAYER */}
+      {selectedCam && (
+        <div className="modal-overlay" onClick={() => setSelectedCam(null)}>
+          <div className="glass player-modal" onClick={e => e.stopPropagation()}>
+            <div className="player-header">
+              <h3>{selectedCam.name}</h3>
+              <button className="btn-close" onClick={() => setSelectedCam(null)}>×</button>
+            </div>
+            <div className="video-container">
+              <iframe 
+                src={`http://localhost:1984/webrtc.html?src=${encodeURIComponent(selectedCam.name)}`}
+                frameBorder="0"
+                scrolling="no"
+                width="100%"
+                height="100%"
+                allowFullScreen
+              ></iframe>
+            </div>
           </div>
         </div>
       )}

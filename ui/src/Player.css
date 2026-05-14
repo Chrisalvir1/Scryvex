@@ -1,0 +1,46 @@
+/* Player Modal */
+.player-modal {
+  width: 90vw;
+  max-width: 1000px;
+  height: 65vh;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.player-header {
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.player-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  opacity: 0.5;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+.video-container {
+  flex: 1;
+  background: #000;
+  position: relative;
+}
+
+.video-container iframe {
+  border: none;
+}
