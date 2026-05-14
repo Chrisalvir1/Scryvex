@@ -12,6 +12,7 @@ import (
 	"github.com/chrisalvir/scryvex/internal/database"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/shirou/gopsutil/v3/process"
 )
 
 func main() {
@@ -22,10 +23,20 @@ func main() {
 	database.InitDB(dsn)
 	database.Migrate()
 
+	// Cargar cámaras existentes en go2rtc
+	go func() {
+		time.Sleep(5 * time.Second)
+		var cameras []database.Camera
+		database.DB.Find(&cameras)
+		for _, cam := range cameras {
+			log.Printf("📡 Registrando cámara: %s\n", cam.Name)
+			http.Get("http://localhost:1984/api/streams?name=" + cam.Name + "&src=" + cam.URL)
+		}
+	}()
+
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Timeout(60 * time.Second))
 
 	// CORS
 	r.Use(func(next http.Handler) http.Handler {
@@ -42,44 +53,45 @@ func main() {
 	})
 
 	r.Get("/api/status", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{
-			"status":  "ok",
-			"version": "2.0.0",
-			"message": "Scryvex Core Online",
+		json.NewEncoder(w).Encode(map[string]string{"status": "ok", "version": "2.0.0"})
+	})
+
+	r.Get("/api/system", func(w http.ResponseWriter, r *http.Request) {
+		p, _ := process.NewProcess(int32(os.Getpid()))
+		cpuVal, _ := p.CPUPercent()
+		memInfo, _ := p.MemoryInfo()
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"cpu":    cpuVal / 10.0,
+			"memory": float64(memInfo.RSS) / 1024 / 1024 / 10,
 		})
 	})
 
-	// API de Cámaras
 	r.Get("/api/cameras", func(w http.ResponseWriter, r *http.Request) {
 		var cameras []database.Camera
-		if database.DB != nil {
-			database.DB.Find(&cameras)
-		}
+		if database.DB != nil { database.DB.Find(&cameras) }
 		json.NewEncoder(w).Encode(cameras)
 	})
 
 	r.Post("/api/cameras", func(w http.ResponseWriter, r *http.Request) {
 		var cam database.Camera
-		if err := json.NewDecoder(r.Body).Decode(&cam); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		if database.DB != nil {
-			database.DB.Create(&cam)
-		}
+		json.NewDecoder(r.Body).Decode(&cam)
+		if database.DB != nil { database.DB.Create(&cam) }
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(cam)
 	})
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "1994"
-	}
+	r.Delete("/api/cameras/{id}", func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if database.DB != nil {
+			database.DB.Delete(&database.Camera{}, id)
+		}
+		w.WriteHeader(http.StatusNoContent)
+	})
 
-	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: r,
-	}
+	port := os.Getenv("PORT")
+	if port == "" { port = "1994" }
+
+	srv := &http.Server{ Addr: ":" + port, Handler: r }
 
 	go func() {
 		log.Printf("✅ Server listening on http://localhost:%s\n", port)
@@ -91,6 +103,5 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-
 	log.Println("👋 Shutting down Scryvex...")
 }

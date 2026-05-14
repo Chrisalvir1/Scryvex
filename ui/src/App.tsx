@@ -13,6 +13,13 @@ function App() {
   const [currentView, setCurrentView] = useState('dashboard')
   const [selectedCam, setSelectedCam] = useState<any>(null)
 
+  const fetchCameras = () => {
+    fetch('http://localhost:1994/api/cameras')
+      .then(res => res.json())
+      .then(data => setCameras(data || []))
+      .catch(err => console.error(err))
+  }
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -27,13 +34,6 @@ function App() {
         setSystemInfo(sysData)
       } catch (e) { console.error(e) }
     }
-
-    const fetchCameras = () => {
-      fetch('http://localhost:1994/api/cameras')
-        .then(res => res.json())
-        .then(data => setCameras(data || []))
-        .catch(err => console.error(err))
-    }
     
     fetchData()
     fetchCameras()
@@ -44,13 +44,12 @@ function App() {
   const handleAddCamera = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      // Construir URL con credenciales si existen
       let finalUrl = newCam.url
       if (newCam.username && newCam.password) {
-        const urlObj = new URL(newCam.url)
-        urlObj.username = newCam.username
-        urlObj.password = newCam.password
-        finalUrl = urlObj.toString()
+        if (newCam.url.includes('://')) {
+          const parts = newCam.url.split('://')
+          finalUrl = `${parts[0]}://${encodeURIComponent(newCam.username)}:${encodeURIComponent(newCam.password)}@${parts[1]}`
+        }
       }
 
       const res = await fetch('http://localhost:1994/api/cameras', {
@@ -66,11 +65,29 @@ function App() {
 
         setShowAddModal(false)
         setNewCam({ name: '', url: '', type: 'rtsp', username: '', password: '' })
-        const d = await fetch('http://localhost:1994/api/cameras').then(r => r.json())
-        setCameras(d || [])
+        fetchCameras()
       }
     } catch (err) {
-      alert('Error saving camera. Make sure the URL is valid (rtsp://...)')
+      alert('Error saving camera.')
+    }
+  }
+
+  const handleDeleteCamera = async (id: number, name: string) => {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar la cámara "${name}"?`)) return
+    
+    try {
+      const res = await fetch(`http://localhost:1994/api/cameras/${id}`, {
+        method: 'DELETE'
+      })
+      if (res.ok) {
+        // También borrar de go2rtc
+        await fetch(`http://localhost:1984/api/streams?name=${encodeURIComponent(name)}`, {
+          method: 'DELETE'
+        })
+        fetchCameras()
+      }
+    } catch (err) {
+      alert('Error deleting camera')
     }
   }
 
@@ -100,7 +117,7 @@ function App() {
                   <div className="cam-actions">
                     <button className="btn-view" onClick={() => setSelectedCam(cam)}>VIEW LIVE</button>
                     {!cam.url.includes('@') && (
-                      <span className="warning-tag" title="Possible Auth Required">⚠️ Auth?</span>
+                      <span className="warning-tag">⚠️ Auth Required</span>
                     )}
                   </div>
                 </div>
@@ -156,11 +173,11 @@ function App() {
                 <td>{cam.url.replace(/:.*@/, ':****@')}</td>
                 <td>
                   <span className={`dot ${cam.url.includes('@') ? 'active' : 'warning'}`}></span>
-                  {cam.url.includes('@') ? 'Online' : 'Auth Required?'}
+                  {cam.url.includes('@') ? 'Online' : 'Auth Required'}
                 </td>
                 <td>
                   <button className="btn-icon" onClick={() => setSelectedCam(cam)}>👁️</button>
-                  <button className="btn-icon red">🗑️</button>
+                  <button className="btn-icon red" onClick={() => handleDeleteCamera(cam.ID, cam.name)}>🗑️</button>
                 </td>
               </tr>
             ))}
@@ -238,7 +255,7 @@ function App() {
               </div>
               <div className="form-row">
                 <div className="form-group">
-                  <label>Username (Optional)</label>
+                  <label>Username</label>
                   <input 
                     type="text" 
                     value={newCam.username} 
@@ -247,7 +264,7 @@ function App() {
                   />
                 </div>
                 <div className="form-group">
-                  <label>Password (Optional)</label>
+                  <label>Password</label>
                   <input 
                     type="password" 
                     value={newCam.password} 

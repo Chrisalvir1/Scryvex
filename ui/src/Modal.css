@@ -1,98 +1,48 @@
-/* Modals */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
 .modal-content {
-  width: 450px;
-  padding: 40px;
-  animation: modalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  width: 90%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 24px;
+  position: relative;
+  z-index: 1000;
+  max-height: 90vh;
+  overflow-y: auto; /* Permite scroll si el contenido es muy largo */
 }
 
 .form-group {
-  margin-bottom: 25px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .form-group label {
-  display: block;
   font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 10px;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  opacity: 0.7;
+  padding-left: 5px;
 }
 
 .form-group input {
-  width: 100%;
-  padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  padding: 12px 18px;
+  border-radius: 12px;
   color: #fff;
   font-size: 14px;
-  box-sizing: border-box;
+  transition: all 0.3s ease;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #3b82f6;
-  background: rgba(255, 255, 255, 0.08);
+  border-color: #7000ff;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 20px rgba(112, 0, 255, 0.2);
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 15px;
-  margin-top: 40px;
-}
-
-.btn-ghost {
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-primary {
-  background: #3b82f6;
-  border: none;
-  color: #fff;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  background: #2563eb;
-}
-
-.camera-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 15px;
-}
-
-.camera-item {
-  aspect-ratio: 16/9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
+  gap: 12px;
+  margin-top: 30px;
 }
