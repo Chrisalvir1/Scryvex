@@ -225,13 +225,49 @@ function renderQRGrid() {
     return;
   }
   el.innerHTML = cameras.map((c, i) => `
-    <div class="glass" style="padding:20px;text-align:center;border-radius:16px">
-      <div style="font-weight:600;margin-bottom:12px">${c.name || 'Cámara ' + (i + 1)}</div>
-      <div style="width:120px;height:120px;margin:0 auto;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#333;padding:8px;text-align:center;">
-        QR Matter<br/><small style="font-family:monospace">${c.id || 'ID-' + i}</small>
+    <div class="glass" style="padding:24px; text-align:center; border-radius:24px; border: 1.5px solid rgba(255,255,255,0.08);">
+      <div style="font-weight:700; font-size:16px; margin-bottom:16px; text-transform:uppercase; letter-spacing:0.5px;">${c.name || 'Cámara ' + (i + 1)}</div>
+      <div id="qr-container-${c.id || i}" style="width:180px; height:180px; margin:0 auto; background:white; border-radius:16px; display:flex; align-items:center; justify-content:center; padding:16px; position:relative; overflow:hidden;">
+         <div class="loader"></div>
       </div>
-      <div style="margin-top:12px;font-size:12px;color:var(--text3)">Escanear con HomeKit</div>
+      <div style="margin-top:20px; font-size:13px; color:var(--text3); font-weight:500;">Escaneame con HomeKit</div>
     </div>`).join('');
+
+  // Generar QRs reales llamando al bridge
+  cameras.forEach(async (c, i) => {
+      const targetId = `qr-container-${c.id || i}`;
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      try {
+          // 1. Intentar registrar la cámara en el bridge si no existe
+          await fetch('/api/matter/cameras/' + (c.id || i), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: c.name })
+          });
+
+          // 2. Obtener el payload
+          const r = await fetch('/api/matter/cameras/' + (c.id || i));
+          const data = await r.json();
+          
+          if (data.qrPayload) {
+              target.innerHTML = ''; // Limpiar loader
+              new QRCode(target, {
+                  text: data.qrPayload,
+                  width: 148,
+                  height: 148,
+                  colorDark: "#000000",
+                  colorLight: "#ffffff",
+                  correctLevel: QRCode.CorrectLevel.M
+              });
+          } else {
+              target.innerHTML = '<p style="color:#666;font-size:10px">Error de Payload</p>';
+          }
+      } catch(e) {
+          target.innerHTML = '<p style="color:#666;font-size:10px">Bridge Offline</p>';
+      }
+  });
 }
 
 // ── Add Camera Modal ──────────────────────────────────────────

@@ -106,7 +106,7 @@ get_version() {
       | grep '"tag_name"' \
       | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' \
       || echo "")
-    [ -z "$VERSION" ] && VERSION="v0.1.2"
+    [ -z "$VERSION" ] && VERSION="v1.0.0"
   fi
   ok "Versión: ${BOLD}${VERSION}${NC}"
 }

@@ -19,7 +19,7 @@ die()  { echo -e "${RED}❌ $1${NC}"; exit 1; }
 
 echo -e "${BLUE}"
 echo "  ╔═════════════════════════════════════════╗"
-echo "  ║  🎥  Scryvex Installer v0.1.1          ║"
+echo "  ║  🎥  Scryvex Installer v1.0.0          ║"
 echo "  ║  Modo nativo macOS (sin Docker)     ║"
 echo "  ╚═════════════════════════════════════════╝"
 echo -e "${NC}"

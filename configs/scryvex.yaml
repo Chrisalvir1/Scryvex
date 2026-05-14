@@ -1,8 +1,8 @@
-# CamBridge v0.1.0 — Configuración principal
+# Scryvex v1.0.0 — Configuración principal
 # ─────────────────────────────────────────────────────────────────────
 
 server:
-  port:      1994
+  port:      1995
   data_dir:  /data
   log_level: info
 
@@ -10,9 +10,9 @@ server:
 matter:
   enabled: true
   port:    5580
-  vid:     65521    # 0xFFF1 → test vendor (no requiere certificación)
-  pid:     32768    # 0x8000
-  name:    "CamBridge Hub"
+  vid:     4447    # Aqara (Lumi United) para evitar avisos de certificación
+  pid:     1
+  name:    "Scryvex Hub"
 
 # ── Thread Border Router (auto-descubrir) ────────────────────────────────
 thread:

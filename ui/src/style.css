@@ -260,3 +260,13 @@ body::before{
   .page{padding:16px}
   .topbar{padding:12px 16px}
 }
+/* ── Animations ──────────────────────────────────────────────── */
+.loader {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }

@@ -4,3 +4,4 @@
 21:18:58.139 INF [rtsp] listen addr=:8556
 21:18:58.140 INF [webrtc] listen tcp addr=[::]:8557
 21:24:43.000 WRN github.com/AlexxIT/go2rtc/internal/streams/producer.go:170 > error="read tcp 192.168.110.154:49608->192.168.110.153:8554: i/o timeout" url=rtsp://861:108@192.168.110.153:8554/ch1
+exit with signal: terminated
