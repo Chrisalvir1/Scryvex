@@ -458,13 +458,21 @@ function openCameraSettings(i) {
           <span>🔋</span> Batería: <strong>${c.battery ? c.battery + '%' : 'N/A'}</strong>
         </div>
         <div class="glass" style="padding:10px; display:flex; align-items:center; gap:8px; font-size:13px;">
-          <span>📶</span> Señal: <strong>Buena</strong>
+          <span>📶</span> Señal: <strong>${c.signal || '85% (Excelente)'}</strong>
         </div>
         <div class="glass" style="padding:10px; display:flex; align-items:center; gap:8px; font-size:13px;">
-          <span>🏃</span> Movimiento: <strong>Despejado</strong>
+          <span>🏃</span> Movimiento: <strong style="color:${c.motion ? '#f87171' : '#4ade80'}">${c.motion ? '¡DETECTADO!' : 'Despejado'}</strong>
         </div>
         <div class="glass" style="padding:10px; display:flex; align-items:center; gap:8px; font-size:13px;">
-          <span>📡</span> Natively RTSP: <strong>${c.is_native_rtsp ? 'Sí' : 'No (Convertido)'}</strong>
+          <span>💡</span> Luz: <strong style="color:${c.light_on ? '#fbbf24' : 'var(--text3)'}">${c.light_on ? 'ENCENDIDA' : 'Apagada'}</strong>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <h4 style="font-size:12px; color:var(--text3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Controles de Entidad</h4>
+        <div class="form-group toggle-group">
+          <label>Encender Luz Reflector</label>
+          <div class="toggle ${c.light_on ? 'active' : ''}" id="set-cam-light" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
         </div>
       </div>
     </div>
@@ -506,8 +514,23 @@ function openCameraSettings(i) {
             <div class="toggle ${c.homekit !== false ? 'active' : ''}" id="set-cam-hk" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
           </div>
           <div class="form-group toggle-group" style="margin-top: 10px;">
-            <label>Detección de Personas (AI)</label>
-            <div class="toggle ${c.ai ? 'active' : ''}" id="set-cam-ai" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
+            <label>Detección Inteligente (AI)</label>
+            <div class="toggle ${c.ai ? 'active' : ''}" id="set-cam-ai" onclick="toggleAISection(this.classList.contains('active'))"><div class="toggle-knob"></div></div>
+          </div>
+          
+          <div id="ai-filters" style="display:${c.ai ? 'grid' : 'none'}; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border-radius:12px;">
+            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+              <input type="checkbox" id="ai-person" ${c.detect_person !== false ? 'checked' : ''}> Personas
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+              <input type="checkbox" id="ai-pet" ${c.detect_pet ? 'checked' : ''}> Mascotas
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+              <input type="checkbox" id="ai-vehicle" ${c.detect_vehicle ? 'checked' : ''}> Vehículos
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+              <input type="checkbox" id="ai-package" ${c.detect_package ? 'checked' : ''}> Paquetes
+            </div>
           </div>
         </div>
       </div>
@@ -521,6 +544,13 @@ function openCameraSettings(i) {
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 
   // El stream se carga automáticamente vía iframe/go2rtc
+}
+
+function toggleAISection(active) {
+  const btn = document.getElementById('set-cam-ai');
+  const section = document.getElementById('ai-filters');
+  const isActive = btn.classList.toggle('active');
+  if (section) section.style.display = isActive ? 'grid' : 'none';
 }
 
 function closeCamSettings() {
@@ -546,6 +576,14 @@ function saveCamSettings() {
   c.enabled = document.getElementById('set-cam-enabled').classList.contains('active');
   c.homekit = document.getElementById('set-cam-hk').classList.contains('active');
   c.ai = document.getElementById('set-cam-ai').classList.contains('active');
+  
+  if (c.type === 'cloud') {
+    c.light_on = document.getElementById('set-cam-light')?.classList.contains('active');
+    c.detect_person = document.getElementById('ai-person')?.checked;
+    c.detect_pet = document.getElementById('ai-pet')?.checked;
+    c.detect_vehicle = document.getElementById('ai-vehicle')?.checked;
+    c.detect_package = document.getElementById('ai-package')?.checked;
+  }
   
   localStorage.setItem('cb_cameras', JSON.stringify(cameras));
   renderCameras();
