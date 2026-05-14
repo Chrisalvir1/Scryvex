@@ -10,6 +10,8 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -134,23 +136,43 @@ func wsDiscovery() {
 					resp := string(buf[:n])
 					ip := remote.IP.String()
 					name := xmlVal(resp, "dn:Name")
-					if name == "" {
-						name = "Cámara ONVIF"
+					manufacturer := "ONVIF"
+					
+					// Intentar extraer de Scopes (más preciso para modelos)
+					scopes := xmlVal(resp, "d:Scopes")
+					if scopes != "" {
+						parts := strings.Split(scopes, " ")
+						for _, p := range parts {
+							if strings.Contains(p, "/name/") {
+								name = strings.ReplaceAll(strings.Split(p, "/name/")[1], "_", " ")
+							}
+							if strings.Contains(p, "/hardware/") {
+								manufacturer = strings.ReplaceAll(strings.Split(p, "/hardware/")[1], "_", " ")
+							}
+						}
 					}
+
+					if name == "" {
+						name = "Cámara " + manufacturer
+					}
+					
 					xaddr := xmlVal(resp, "d:XAddrs")
 					streamURL := "rtsp://" + ip + ":554/stream1"
 					if xaddr != "" {
 						streamURL = strings.Split(xaddr, " ")[0]
 					}
+					
+					mac := getMAC(ip)
+					
 					dev := &Device{
-						ID: "onvif-" + ip, Name: name, IP: ip,
+						ID: "onvif-" + ip, Name: name, IP: ip, MAC: mac,
 						Protocol: "onvif", StreamURL: streamURL,
-						IsNativeRTSP: true, Manufacturer: "ONVIF",
+						IsNativeRTSP: true, Manufacturer: manufacturer,
 					}
 					mu.Lock()
 					found[ip] = dev
 					mu.Unlock()
-					log.Printf("📷 ONVIF: %s @ %s", name, ip)
+					log.Printf("📷 ONVIF: %s (%s) @ %s", name, manufacturer, ip)
 				}
 			}(lip)
 		}
@@ -201,14 +223,22 @@ func tcpPortScan() {
 
 						mu.Lock()
 						if _, exists := found[ip]; !exists {
+							mac := getMAC(ip)
+							brand := guessBrand(mac, p.port)
+							
+							if camName == fmt.Sprintf("Dispositivo (%s:%d)", ip, p.port) {
+								camName = fmt.Sprintf("%s (%s)", brand, ip)
+							}
+
 							found[ip] = &Device{
 								ID:       "tcp-" + ip,
 								Name:     camName,
-								IP:       ip, Protocol: p.protocol,
+								IP:       ip, MAC: mac, Protocol: p.protocol,
 								StreamURL:    fmt.Sprintf("rtsp://%s:554/stream1", ip),
 								IsNativeRTSP: p.port == 554 || p.port == 8554,
+								Manufacturer: brand,
 							}
-							log.Printf("📷 TCP puerto %d abierto: %s (%s)", p.port, ip, camName)
+							log.Printf("📷 TCP %s: %s (%s)", brand, ip, camName)
 						}
 						mu.Unlock()
 						break
@@ -268,4 +298,37 @@ func xmlVal(xml, tag string) string {
 		return ""
 	}
 	return strings.TrimSpace(xml[start : start+end])
+}
+
+func getMAC(ip string) string {
+	out, _ := exec.Command("arp", "-n", ip).Output()
+	s := string(out)
+	// Formato macOS: (192.168.1.1) at a4:c1:38:xx:xx:xx on en0 [ethernet]
+	re := regexp.MustCompile(`([0-9a-fA-F]{1,2}:){5}[0-9a-fA-F]{1,2}`)
+	return re.FindString(s)
+}
+
+func guessBrand(mac string, port int) string {
+	mac = strings.ToLower(mac)
+	if strings.HasPrefix(mac, "a4:c1:38") || strings.HasPrefix(mac, "cc:32:e5") || strings.HasPrefix(mac, "00:31:92") {
+		return "Tapo / TP-Link"
+	}
+	if strings.HasPrefix(mac, "e0:62:90") || strings.HasPrefix(mac, "44:01:bb") {
+		return "Vicohome / VStarcam"
+	}
+	if strings.HasPrefix(mac, "bc:33:ac") || strings.HasPrefix(mac, "c0:e7:bf") {
+		return "Hikvision"
+	}
+	if strings.HasPrefix(mac, "3c:e1:a1") || strings.HasPrefix(mac, "00:12:12") {
+		return "Dahua"
+	}
+	if strings.HasPrefix(mac, "f4:b3:01") {
+		return "Ring"
+	}
+	
+	if port == 8000 { return "Hikvision?" }
+	if port == 37777 { return "Dahua?" }
+	if port == 2020 { return "ONVIF Cam" }
+	
+	return "Cámara Genérica"
 }
