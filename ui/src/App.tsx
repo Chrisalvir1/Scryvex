@@ -106,7 +106,7 @@ function App() {
           <div className="empty-state">
             <div className="empty-icon">📹</div>
             <p>No active video streams</p>
-            <button className="btn-setup" onClick={() => setShowAddModal(true)}>Add First Camera</button>
+            <button className="btn-primary" onClick={() => setShowAddModal(true)}>+ Add First Camera</button>
           </div>
         ) : (
           <div className="camera-grid">
@@ -165,14 +165,16 @@ function App() {
     <div className="view-container">
       <div className="view-header">
         <h2>Camera Management</h2>
-        <button className="btn-primary" onClick={() => setShowAddModal(true)}>+ Add Camera</button>
+        <button className="btn-primary" onClick={() => setShowAddModal(true)}>
+          <span>➕</span> Add Camera
+        </button>
       </div>
-      <div className="glass card full-width">
+      <div className="glass full-width">
         <table className="cam-table">
           <thead>
             <tr>
               <th>Name</th>
-              <th>URL</th>
+              <th>Stream URL</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -180,18 +182,27 @@ function App() {
           <tbody>
             {cameras.map((cam, idx) => (
               <tr key={idx}>
-                <td>{cam.name}</td>
-                <td>{cam.url.replace(/:.*@/, ':****@')}</td>
+                <td style={{fontWeight: 700}}>{cam.name}</td>
+                <td style={{opacity: 0.6, fontFamily: 'monospace'}}>{cam.url.replace(/:.*@/, ':****@')}</td>
                 <td>
-                  <span className={`dot ${cam.url.includes('@') ? 'active' : 'warning'}`}></span>
-                  {cam.url.includes('@') ? 'Online' : 'Auth Required'}
+                  <div className="status-cell">
+                    <span className={`dot ${cam.url.includes('@') ? 'active' : 'warning'}`}></span>
+                    {cam.url.includes('@') ? 'Connected' : 'Credentials Required'}
+                  </div>
                 </td>
                 <td>
-                  <button className="btn-icon" onClick={() => setSelectedCam(cam)}>👁️</button>
-                  <button className="btn-icon red" onClick={() => handleDeleteCamera(cam.ID, cam.name)}>🗑️</button>
+                  <div className="actions-cell">
+                    <button className="btn-action" title="View Stream" onClick={() => setSelectedCam(cam)}>👁️</button>
+                    <button className="btn-action red" title="Delete Camera" onClick={() => handleDeleteCamera(cam.ID, cam.name)}>🗑️</button>
+                  </div>
                 </td>
               </tr>
             ))}
+            {cameras.length === 0 && (
+              <tr>
+                <td colSpan={4} className="empty-table-msg">No cameras registered.</td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
