@@ -1,0 +1,11 @@
+{
+  "id": "wyze",
+  "name": "Wyze",
+  "version": "0.1.0",
+  "description": "Plantilla local para integracion Wyze.",
+  "entry": "index.js",
+  "autoStart": false,
+  "implemented": false,
+  "brand": "Wyze",
+  "interfaces": ["VideoCamera"]
+}

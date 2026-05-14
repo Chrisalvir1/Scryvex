@@ -1,4 +1,4 @@
-# CamBridge — Docker Compose (macOS / Linux x86_64 / Apple Silicon)
+# Scryvex — Docker Compose (macOS / Linux x86_64 / Apple Silicon)
 # Uso:
 #   docker compose up -d          # build + arrancar
 #   docker compose logs -f        # ver logs
@@ -12,19 +12,19 @@
 version: "3.9"
 
 services:
-  cambrige:
+  scryvex:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: cambrige
+    container_name: scryvex
     restart: unless-stopped
     environment:
       - TZ=${TZ:-America/Costa_Rica}
-      - PORT=8080
+      - PORT=1994
       - MATTER_PORT=${MATTER_PORT:-5580}
       - MATTER_VID=${MATTER_VID:-65521}
       - MATTER_PID=${MATTER_PID:-32768}
-      - MATTER_NAME=${MATTER_NAME:-CamBridge Hub}
+      - MATTER_NAME=${MATTER_NAME:-Scryvex Hub}
       - THREAD_ENABLED=${THREAD_ENABLED:-true}
       - AI_ENABLED=${AI_ENABLED:-true}
       - GPU_DEVICE=${GPU_DEVICE:-auto}
@@ -33,23 +33,23 @@ services:
       - TUYA_REGION=${TUYA_REGION:-eu}
       - LAN_SUBNET=${LAN_SUBNET:-}
     ports:
-      - "8080:8080"
+      - "1994:1994"
       - "1984:1984"
       - "8554:8554"
       - "8555:8555"
       - "5580:5580/udp"
       - "7878:7878"
     volumes:
-      - cambrige-data:/data
-      - cambrige-logs:/logs
+      - scryvex-data:/data
+      - scryvex-logs:/logs
       - ./configs:/app/configs
     # Red del host: permite el escaneo LAN real.
     # En Raspberry Pi / Linux esto descubre todas las cámaras.
     # En macOS Docker Desktop, se usa el port-mapping de arriba.
     networks:
-      - cambrige-net
+      - scryvex-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/status"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:1994/api/status"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -61,9 +61,9 @@ services:
         max-file: "3"
 
 volumes:
-  cambrige-data:
-  cambrige-logs:
+  scryvex-data:
+  scryvex-logs:
 
 networks:
-  cambrige-net:
+  scryvex-net:
     driver: bridge

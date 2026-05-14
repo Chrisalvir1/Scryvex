@@ -1,0 +1,4 @@
+#!/bin/bash
+trap "pkill -f scanner-agent; exit" SIGINT SIGTERM
+./scanner-agent &
+./scryvex-server -data ./data -port 1994

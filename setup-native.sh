@@ -1,11 +1,11 @@
 #!/bin/bash
 # ─────────────────────────────────────────────────────────────────
-# CamBridge Professional Native Setup (macOS)
+# Scryvex Professional Native Setup (macOS)
 # ─────────────────────────────────────────────────────────────────
 
 set -e
 
-echo "🚀 Iniciando instalación profesional de CamBridge Hub..."
+echo "🚀 Iniciando instalación profesional de Scryvex Hub..."
 
 # 1. Detectar Arquitectura
 ARCH=$(uname -m)
@@ -63,7 +63,7 @@ fi
 # En Mac usamos VideoToolbox
 echo "🏎️ Configurando aceleración por GPU (VideoToolbox)..."
 cat > build/.env <<EOF
-PORT=1995
+PORT=1994
 FFMPEG_HWACCEL=videotoolbox
 GPU_ENABLED=true
 SCANNER_PORT=9876
@@ -74,23 +74,25 @@ cat > scryvex-hub <<EOF
 #!/bin/bash
 trap "pkill -f scanner-agent; exit" SIGINT SIGTERM
 ./scanner-agent &
-./scryvex-server -data ./data -port 1995
+./scryvex-server -data ./data -port 1994
 EOF
 chmod +x scryvex-hub
 mv scryvex-hub build/
 
 # 7. Preparar UI
 echo "🌐 Sincronizando interfaz de usuario..."
-cp -r ui/src build/ui
+rm -rf build/ui
+mkdir -p build/ui
+cp -r ui/src/. build/ui/
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "✅ INSTALACIÓN COMPLETADA"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "CamBridge Hub ha sido instalado en la carpeta ./build"
+echo "Scryvex Hub ha sido instalado en la carpeta ./build"
 echo ""
 echo "Para iniciar el sistema profesionalmente:"
-echo "cd build && ./cambridge-hub"
+echo "cd build && ./scryvex-hub"
 echo ""
 echo "Nota: El sistema detectará automáticamente si usas Intel o Silicon"
 echo "y usará la GPU de tu Mac para procesar el video sin lag."

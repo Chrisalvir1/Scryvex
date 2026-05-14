@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CamBridge AI Detection Engine
+Scryvex AI Detection Engine
 MOG2 pre-filtro → YoloFastestV2 → zonas → eventos MQTT
 Compatible con Apple Silicon (coreml), Intel (openvino), ARM (cpu)
 """

@@ -85,7 +85,7 @@ func (c *Client) GetNetworkCredentials() (*NetworkCredentials, error) {
 	// Spec: https://openthread.io/reference/border-router/rest-api
 	urls := []string{
 		c.tbrURL + "/node/dataset/active",   // OTBR REST
-		c.tbrURL + "/api/thread/dataset",     // CamBridge proxy
+		c.tbrURL + "/api/thread/dataset",     // Scryvex proxy
 		c.tbrURL + "/thread/network",         // Homeassistant addon
 	}
 

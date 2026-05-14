@@ -1,7 +1,7 @@
 {
-  "name": "cambrige-matter-bridge",
+  "name": "scryvex-matter-bridge",
   "version": "0.1.0",
-  "description": "CamBridge Matter Bridge — QR generation & multi-fabric commissioning",
+  "description": "Scryvex Matter Bridge — QR generation & multi-fabric commissioning",
   "main": "bridge.js",
   "scripts": {
     "start": "node bridge.js"

@@ -1,0 +1,11 @@
+{
+  "id": "ezviz",
+  "name": "Ezviz",
+  "version": "0.1.0",
+  "description": "Plantilla local para integracion Ezviz.",
+  "entry": "index.js",
+  "autoStart": false,
+  "implemented": false,
+  "brand": "Ezviz",
+  "interfaces": ["VideoCamera"]
+}

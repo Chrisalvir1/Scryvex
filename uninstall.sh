@@ -40,17 +40,15 @@ fi
 # ── 2. Matar todos los procesos en ejecución ────────────────────────
 info "Matando procesos Scryvex..."
 pkill -f "scryvex-server"   2>/dev/null && echo "   detenido: scryvex-server"   || true
-pkill -f "cambridge-server" 2>/dev/null && echo "   detenido: cambridge-server" || true
 pkill -f "go2rtc"           2>/dev/null && echo "   detenido: go2rtc"           || true
 pkill -f "bridge.js"        2>/dev/null && echo "   detenido: matter-bridge"    || true
-pkill -f "cambrige-scanner" 2>/dev/null && echo "   detenido: scanner-agent"   || true
+pkill -f "scryvex-scanner" 2>/dev/null && echo "   detenido: scanner-agent"   || true
 sleep 1
 ok "Todos los procesos detenidos"
 
 # ── 3. Eliminar binarios compilados y descargados ───────────────────
 info "Eliminando binarios..."
 rm -f "$SCRIPT_DIR/build/scryvex-server"
-rm -f "$SCRIPT_DIR/build/cambridge-server"
 rm -f "$SCRIPT_DIR/bin/go2rtc"
 rm -rf "$SCRIPT_DIR/matter-bridge/node_modules"
 ok "Binarios eliminados"

@@ -83,7 +83,18 @@ mkdir -p "$SCRIPT_DIR/build"
 cd "$SCRIPT_DIR"
 sudo -u "$REAL_USER" go build -o build/scryvex-server ./cmd/server/
 chmod +x build/scryvex-server
+
+# Crear script unificado para el daemon
+cat > build/scryvex-hub <<EOF
+#!/bin/bash
+cd "\$(dirname "\$0")/.."
+./scanner-agent/scryvex-scanner-\$(uname -m | sed 's/arm64/arm64/;s/x86_64/amd64/') >> ./logs/scanner.log 2>&1 &
+./build/scryvex-server --data ./data --port 1994 --ui ./build/ui
+EOF
+chmod +x build/scryvex-hub
+
 mkdir -p "$SCRIPT_DIR/build/ui"
+rm -rf "$SCRIPT_DIR/build/ui/"*
 cp -r "$SCRIPT_DIR/ui/src/"* "$SCRIPT_DIR/build/ui/" 2>/dev/null || true
 ok "scryvex-server compilado y UI preparada"
 

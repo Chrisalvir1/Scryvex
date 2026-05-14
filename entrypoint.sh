@@ -1,21 +1,21 @@
 #!/bin/bash
-# CamBridge — Entrypoint: arranca todos los servicios
+# Scryvex — Entrypoint: arranca todos los servicios
 set -e
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-ok()   { echo -e "${GREEN}[cambrige] ✅ $1${NC}"; }
-info() { echo -e "${BLUE}[cambrige] ▶  $1${NC}"; }
-warn() { echo -e "${YELLOW}[cambrige] ⚠️  $1${NC}"; }
+ok()   { echo -e "${GREEN}[scryvex] ✅ $1${NC}"; }
+info() { echo -e "${BLUE}[scryvex] ▶  $1${NC}"; }
+warn() { echo -e "${YELLOW}[scryvex] ⚠️  $1${NC}"; }
 
 echo -e "${BLUE}"
 echo "  ╔══════════════════════════════════════════╗"
-echo "  ║  🎥 CamBridge v0.1.0                     ║"
+echo "  ║  🎥 Scryvex v1.0.0                       ║"
 echo "  ║  Camera Matter Bridge                    ║"
 echo "  ╚══════════════════════════════════════════╝"
 echo -e "${NC}"
 
 # ── Variables con defaults ────────────────────────────────────────────────
-: "${PORT:=8080}"
+: "${PORT:=1994}"
 : "${MATTER_PORT:=5580}"
 : "${AI_ENABLED:=true}"
 
@@ -73,7 +73,7 @@ if [ "$AI_ENABLED" = "true" ] && command -v python3 &>/dev/null; then
     if [ -f /app/ai_engine/detector.py ]; then
         info "Iniciando AI Engine..."
         python3 /app/ai_engine/detector.py \
-            --config /app/configs/cambrige.yaml \
+            --config /app/configs/scryvex.yaml \
             --api-url "http://localhost:$PORT" \
             --gpu "${GPU_DEVICE:-auto}" \
             >> /logs/ai-engine.log 2>&1 &
@@ -89,11 +89,11 @@ else
     info "AI Engine desactivado (AI_ENABLED=$AI_ENABLED)"
 fi
 
-# ── 4. CamBridge Go API (proceso principal — blocking) ───────────────────
+# ── 4. Scryvex Go API (proceso principal — blocking) ─────────────────────
 info "Iniciando API Server en :$PORT..."
 ok "UI disponible en http://localhost:$PORT"
 echo ""
-exec cambrige-server \
-    --config /app/configs/cambrige.yaml \
+exec scryvex-server \
+    --config /app/configs/scryvex.yaml \
     --data   /data \
     --port   "$PORT"

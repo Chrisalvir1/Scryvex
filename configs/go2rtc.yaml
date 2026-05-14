@@ -1,4 +1,4 @@
-# go2rtc config — CamBridge
+# go2rtc config — Scryvex
 api:
   listen: ":1984"
   origin: "*"

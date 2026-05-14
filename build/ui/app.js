@@ -54,6 +54,7 @@ function bootApp() {
   setInterval(tickClock, 1000);
   fetchStatus();
   setInterval(fetchStatus, 15000);
+  fetchPlugins();
 
   // Mostrar/ocultar opciones admin
   if (authUser && authUser.role === 'admin') {
@@ -97,10 +98,10 @@ async function fetchStatus() {
     setOnline(true);
     document.getElementById('stat-ver').textContent = data.version || '1.0.0';
 
-    // Update sub-services (simulated or real checks)
-    updateSvcStatus('svc-go2rtc', true, 'Activo');
-    updateSvcStatus('svc-matter', true, 'Bridge Listo');
-    updateSvcStatus('svc-ai', true, 'YoloFastestV2');
+    const services = data.services || {};
+    updateSvcStatus('svc-go2rtc', !!services.go2rtc?.ok, services.go2rtc?.ok ? 'Activo' : 'Error');
+    updateSvcStatus('svc-matter', !!services.matter?.ok, services.matter?.ok ? 'Bridge listo' : 'Error');
+    updateSvcStatus('svc-ai', true, 'Disponible');
   } catch {
     setOnline(false);
     updateSvcStatus('svc-go2rtc', false, 'Error');
@@ -139,18 +140,33 @@ async function fetchCameras() {
     const res = await fetch(API + '/api/cameras');
     const backendCams = await res.json();
     if (Array.isArray(backendCams) && backendCams.length > 0) {
-      cameras = backendCams;
+      cameras = backendCams.map(normalizeCameraClient);
       // Also sync to localStorage as backup
       lsSet('cb_cameras', JSON.stringify(cameras));
     } else {
       // Backend empty - check localStorage as fallback
       const local = JSON.parse(lsGet('cb_cameras') || '[]');
-      cameras = local;
+      cameras = local.map(normalizeCameraClient);
     }
   } catch {
-    cameras = JSON.parse(lsGet('cb_cameras') || '[]');
+    cameras = JSON.parse(lsGet('cb_cameras') || '[]').map(normalizeCameraClient);
   }
   renderCameras();
+}
+
+function normalizeCameraClient(c) {
+  if (!c) return c;
+  if (!c.streamId) c.streamId = safeStreamId(c.id || c.name || c.url || c.stream_url || Date.now());
+  if (!c.url && c.stream_url) c.url = c.stream_url;
+  if (!c.stream_url && c.url) c.stream_url = c.url;
+  return c;
+}
+
+function safeStreamId(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || ('cam-' + Date.now());
 }
 
 function renderCameras() {
@@ -334,19 +350,41 @@ function addCamera() {
   saveNewCamera(cam);
 }
 
-function saveNewCamera(cam) {
-  cameras.push(cam);
+async function saveNewCamera(cam) {
+  cam = normalizeCameraClient(cam);
+  closeModal();
+  try {
+    const resp = await fetch(API + '/api/cameras', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cam)
+    });
+    const data = await resp.json();
+    const saved = normalizeCameraClient(data.camera || cam);
+    upsertCameraLocal(saved);
+    toast(saved.streamStatus === 'ready'
+      ? '✅ Cámara "' + saved.name + '" agregada y lista'
+      : '✅ Cámara "' + saved.name + '" guardada');
+  } catch {
+    upsertCameraLocal(cam);
+    toast('✅ Cámara "' + cam.name + '" guardada localmente', 'success');
+  }
+}
+
+function upsertCameraLocal(cam) {
+  const idx = cameras.findIndex(c => c.id === cam.id);
+  if (idx >= 0) cameras[idx] = cam;
+  else cameras.push(cam);
   lsSet('cb_cameras', JSON.stringify(cameras));
   renderCameras();
-  closeModal();
-  toast('✅ Cámara "' + cam.name + '" agregada', 'success');
+}
 
-  // Intentar POST al API
-  fetch(API + '/api/cameras', {
+function postCamera(cam) {
+  return fetch(API + '/api/cameras', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(cam)
-  }).catch(() => { });
+  });
 }
 
 // ── Brand Plugin System ────────────────────────────────────────
@@ -659,7 +697,7 @@ function showCloudResults(brand, cams, logo) {
               <div style="font-size:11px;color:var(--text3);">${c.ip || 'Vía nube'}</div>
             </div>
           </div>
-          ${!isPlaceholder ? `<button class="btn-primary" style="padding:8px 14px;font-size:12px;" onclick="importFromBtn(this)" data-cam='${JSON.stringify(c).replace(/'/g, "&#39;")}'>`+ Agregar</button>` : ''}
+          ${!isPlaceholder ? `<button class="btn-primary" style="padding:8px 14px;font-size:12px;" onclick="importFromBtn(this)" data-cam='${cameraDataAttr(c)}'>+ Agregar</button>` : ''}
         </div>
         
         ${isPlaceholder ? `
@@ -673,6 +711,10 @@ function showCloudResults(brand, cams, logo) {
         ` : ''}
       </div>`
     }).join('');
+}
+
+function cameraDataAttr(c) {
+  return JSON.stringify(c).replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 function importManualCloud(idx, brand, logo) {
@@ -717,8 +759,7 @@ function viewStream(i, btn) {
   const c = cameras[i];
   if (!c.url && !c.stream_url) { toast('No hay URL disponible para streaming', 'error'); return; }
 
-  // Si es la cámara Aqara, usamos el nombre del stream ya configurado en el servidor para máxima estabilidad
-  const streamId = (c.manufacturer === 'Aqara' || c.ip === '192.168.110.153') ? 'aqara' : (c.stream_url || c.url);
+  const streamId = c.streamId || c.stream_id || ((c.manufacturer === 'Aqara' || c.ip === '192.168.110.153') ? 'aqara' : (c.stream_url || c.url));
   
   const card = btn ? btn.closest('.camera-card') : document.getElementById('card-' + i);
   if (!card) {
@@ -831,7 +872,7 @@ async function startScan() {
             <div style="font-family:monospace;font-size:11px;color:var(--text3);opacity:0.7;margin-top:2px">${c.stream_url || ''}</div>
           </div>
           <button class="btn-primary" style="white-space:nowrap;padding:8px 14px;font-size:13px" 
-            onclick="importFromBtn(this)">+ Agregar</button>
+            onclick="importFromBtn(this)" data-cam='${cameraDataAttr(c)}'>+ Agregar</button>
         </div>`;
       };
 
@@ -847,7 +888,7 @@ async function startScan() {
     res.innerHTML = `
       <div class="glass" style="padding:24px;text-align:center;color:var(--text2)">
         <div style="font-size:32px;margin-bottom:12px">⚠️</div>
-        API no disponible. Asegúrate de que Scryvex esté corriendo en localhost:8080
+        API no disponible. Asegúrate de que Scryvex esté corriendo en localhost:1994
       </div>`;
   }
   btn.textContent = '🔍 Escanear red';
@@ -861,7 +902,7 @@ function importDiscovered(cam) {
     toast('⚠️ Esta cámara ya fue agregada', 'error');
     return;
   }
-  const newCam = {
+  const newCam = normalizeCameraClient({
     ...cam,
     id: cam.id || ('disc-' + Date.now()),
     name: cam.name || ('Cámara ' + cam.ip),
@@ -869,7 +910,7 @@ function importDiscovered(cam) {
     type: cam.protocol === 'onvif' ? 'rtsp' : (cam.protocol || 'rtsp'),
     enabled: true,
     homekit: true,
-  };
+  });
 
   // Registrar en el Matter Bridge para generar el QR
   fetch('/api/matter/cameras/' + newCam.id + '/register', {
@@ -878,28 +919,23 @@ function importDiscovered(cam) {
     body: JSON.stringify({ name: newCam.name })
   }).catch(e => console.warn('Matter Bridge no disponible', e));
 
-  // Save to backend (persistent in data/cameras.json)
-  fetch(API + '/api/cameras', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(newCam)
-  }).then(() => {
-    cameras.push(newCam);
-    renderCameras();
-    toast('✅ Cámara guardada: ' + newCam.name, 'success');
+  postCamera(newCam).then(r => r.json()).then((data) => {
+    const saved = normalizeCameraClient(data.camera || newCam);
+    upsertCameraLocal(saved);
+    toast(saved.streamStatus === 'ready' ? '✅ Cámara lista: ' + saved.name : '✅ Cámara guardada: ' + saved.name, 'success');
   }).catch(() => {
     // Fallback to localStorage if backend unreachable
-    cameras.push(newCam);
-    lsSet('cb_cameras', JSON.stringify(cameras));
-    renderCameras();
+    upsertCameraLocal(newCam);
     toast('✅ Cámara importada (local): ' + newCam.name, 'success');
   });
 }
 // Safe wrapper — avoids single-quote injection in onclick attributes
 function importFromBtn(btn) {
   try {
-    const raw = btn.getAttribute('data-cam').replace(/&#39;/g, "'");
-    importDiscovered(JSON.parse(raw));
+    const raw = btn.getAttribute('data-cam');
+    if (!raw) throw new Error('missing camera data');
+    const decoded = raw.replace(/&#39;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    importDiscovered(JSON.parse(decoded));
   } catch(e) {
     console.error('importFromBtn parse error', e);
     toast('Error al importar cámara', 'error');
@@ -918,17 +954,28 @@ async function fetchMatterQR(id) {
     const d = await r.json();
     if (d.qrPayload) {
       container.innerHTML = `
-        <div style="background:white; padding:12px; border-radius:12px; display:inline-block; margin:10px 0;">
-          <img src="${d.qrImageUrl}" style="width:180px; height:180px; display:block;">
-        </div>
+        <div id="matter-qr-local" style="background:white; padding:12px; border-radius:12px; display:inline-block; margin:10px 0;"></div>
         <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; font-family:monospace; font-size:12px; color:var(--text2); margin-top:8px;">
           Setup Code: <strong>${d.manualCode}</strong>
         </div>
         <p style="font-size:11px; color:var(--text3); margin-top:12px;">Válido para Apple Home, Google y Alexa.</p>
       `;
+      const qrEl = document.getElementById('matter-qr-local');
+      if (window.QRCode && qrEl) {
+        new QRCode(qrEl, {
+          text: d.qrPayload,
+          width: 180,
+          height: 180,
+          colorDark: '#000000',
+          colorLight: '#ffffff',
+          correctLevel: QRCode.CorrectLevel.M
+        });
+      } else if (qrEl) {
+        qrEl.innerHTML = `<div style="color:#111;font-size:11px;max-width:180px;word-break:break-all">${d.qrPayload}</div>`;
+      }
     }
   } catch (e) {
-    container.innerHTML = '<p style="color:var(--danger);font-size:12px;">Matter Bridge no disponible.</p>';
+    container.innerHTML = '<p style="color:var(--danger);font-size:12px;">Matter Bridge no disponible. Usa el código manual cuando vuelva a estar activo.</p>';
   }
 }
 
@@ -944,7 +991,7 @@ function openCameraSettings(i) {
     return;
   }
 
-  const streamUrl = (c.type === 'hls' || c.type === 'cloud') ? (c.stream_url || c.url) : c.url;
+  const streamUrl = c.streamId || c.stream_id || ((c.type === 'hls' || c.type === 'cloud') ? (c.stream_url || c.url) : c.url);
   const encodedSrc = encodeURIComponent(streamUrl);
 
   const modalHTML = `
@@ -1023,6 +1070,7 @@ function closeCamSettings() {
 
 function saveCamSettings() {
   if (currentEditingCam === null) return;
+  const editIndex = currentEditingCam;
   const c = cameras[currentEditingCam];
   c.name = document.getElementById('set-cam-name').value.trim();
   c.enabled = document.getElementById('set-cam-enabled').classList.contains('active');
@@ -1030,6 +1078,11 @@ function saveCamSettings() {
   c.detect_person = document.getElementById('ai-person').checked;
   c.detect_vehicle = document.getElementById('ai-vehicle').checked;
   lsSet('cb_cameras', JSON.stringify(cameras));
+  postCamera(c).then(r => r.json()).then(data => {
+    if (data.camera) cameras[editIndex] = normalizeCameraClient(data.camera);
+    lsSet('cb_cameras', JSON.stringify(cameras));
+    renderCameras();
+  }).catch(() => {});
   renderCameras();
   closeCamSettings();
   toast('💾 Ajustes guardados', 'success');
@@ -1517,30 +1570,81 @@ async function testRingBridge() {
 
 // ── Plugin Management (Scryvex 1.0) ───────────────────────────
 let activePlugin = null;
+let plugins = [];
 
-function openPluginSettings(id) {
-    activePlugin = id;
-    const config = {
-        ring: { name: 'Ring', color: '#007bff', icon: 'R' },
-        vicohome: { name: 'Vicohome', color: '#28a745', icon: 'V' },
-        wyze: { name: 'Wyze', color: '#fd7e14', icon: 'W' },
-        tapo: { name: 'Tapo', color: '#6f42c1', icon: 'T' },
-        tuya: { name: 'Tuya', color: '#ffc107', icon: '🏠' },
-        ezviz: { name: 'Ezviz', color: '#dc3545', icon: '🛡️' },
-        vimtag: { name: 'Vimtag', color: '#17a2b8', icon: '📹' }
-    }[id];
+async function fetchPlugins() {
+  try {
+    const res = await fetch(API + '/api/plugins');
+    const data = await res.json();
+    plugins = data.plugins || [];
+  } catch {
+    plugins = [];
+  }
+  renderPlugins();
+}
 
-    if (!config) {
-        console.error('❌ No se encontró configuración para el plugin:', id);
-        return;
-    }
+function renderPlugins() {
+  const grid = document.getElementById('plugins-grid');
+  if (!grid) return;
+  if (plugins.length === 0) {
+    grid.innerHTML = `<div class="empty-state glass"><p>No hay plugins locales instalados.</p><button class="btn-primary" onclick="createLocalPlugin()">+ Crear plugin</button></div>`;
+    return;
+  }
+  const colorFor = (p) => p.running ? '#10b981' : (p.status === 'template' ? '#94a3b8' : (p.status === 'error' ? '#ef4444' : '#f59e0b'));
+  const labelFor = (p) => p.running ? 'ACTIVO' : (p.status === 'template' ? 'PLANTILLA' : (p.status === 'error' ? 'ERROR' : 'DETENIDO'));
+  grid.innerHTML = plugins.map(p => {
+    const color = colorFor(p);
+    const icon = (p.name || p.id || '?').slice(0, 1).toUpperCase();
+    return `
+      <div class="glass plugin-card" style="padding:20px;border-radius:16px;display:flex;flex-direction:column;gap:14px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
+          <div style="display:flex;align-items:center;gap:12px;min-width:0;">
+            <div style="width:38px;height:38px;background:${color};border-radius:10px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;">${icon}</div>
+            <div style="min-width:0;">
+              <div style="font-weight:650;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name || p.id}</div>
+              <div style="font-size:11px;color:var(--text3);">${p.id} · v${p.version || '0.1.0'}</div>
+            </div>
+          </div>
+          <span class="badge" style="background:${color}22;color:${color};font-size:11px;padding:4px 8px;border-radius:6px;">${labelFor(p)}</span>
+        </div>
+        <p style="font-size:13px;color:var(--text2);margin:0;min-height:36px;">${p.description || 'Plugin local de Scryvex.'}</p>
+        ${p.lastError ? `<div style="font-size:11px;color:#fca5a5;background:rgba(239,68,68,0.08);padding:8px;border-radius:8px;">${p.lastError}</div>` : ''}
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-glass" onclick="openPluginSettings('${p.id}')" style="flex:1;justify-content:center;">Configurar</button>
+          ${p.implemented ? (p.running
+            ? `<button class="btn-secondary" onclick="stopPlugin('${p.id}')">Detener</button><button class="btn-secondary" onclick="restartPlugin('${p.id}')">Reiniciar</button>`
+            : `<button class="btn-primary" onclick="startPlugin('${p.id}')">Iniciar</button>`)
+            : `<button class="btn-secondary" onclick="toast('Este plugin es una plantilla local todavía sin integración real', 'error')">Editar</button>`}
+        </div>
+      </div>`;
+  }).join('') + `
+    <div class="glass plugin-card" style="padding:20px;border-radius:16px;display:flex;align-items:center;justify-content:center;min-height:180px;">
+      <button class="btn-primary" onclick="createLocalPlugin()">+ Crear plugin local</button>
+    </div>`;
+}
 
-    document.getElementById('plugin-settings-title').textContent = `Configurar ${config.name}`;
-    const iconEl = document.getElementById('plugin-settings-icon');
-    iconEl.textContent = config.icon;
-    iconEl.style.backgroundColor = config.color;
-    
-    document.getElementById('modal-plugin-settings').classList.add('open');
+async function openPluginSettings(id) {
+  activePlugin = id;
+  const plugin = plugins.find(p => p.id === id) || { id, name: id };
+
+  document.getElementById('plugin-settings-title').textContent = `Configurar ${plugin.name || id}`;
+  const iconEl = document.getElementById('plugin-settings-icon');
+  iconEl.textContent = (plugin.name || id).slice(0, 1).toUpperCase();
+  iconEl.style.backgroundColor = plugin.running ? '#10b981' : '#64748b';
+
+  try {
+    const res = await fetch(`${API}/api/plugins/${id}/config`);
+    const cfg = await res.json();
+    document.getElementById('plugin-user').value = cfg.user || cfg.email || '';
+    document.getElementById('plugin-pass').value = cfg.pass || cfg.password || '';
+    document.getElementById('plugin-extra').value = cfg.extra || cfg.token || cfg.region || '';
+  } catch {
+    document.getElementById('plugin-user').value = '';
+    document.getElementById('plugin-pass').value = '';
+    document.getElementById('plugin-extra').value = '';
+  }
+
+  document.getElementById('modal-plugin-settings').classList.add('open');
 }
 
 function closePluginModal() {
@@ -1552,9 +1656,16 @@ async function savePluginConfig() {
     const pass = document.getElementById('plugin-pass').value;
     const extra = document.getElementById('plugin-extra').value;
 
-    toast(`Conectando plugin ${activePlugin}...`, 'info');
+    toast(`Guardando plugin ${activePlugin}...`, 'success');
 
     try {
+        const cfgRes = await fetch(`${API}/api/plugins/${activePlugin}/config`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user, pass, extra, updatedAt: new Date().toISOString() })
+        });
+        if (!cfgRes.ok) throw new Error(await cfgRes.text());
+
         const res = await fetch(`${API}/api/plugins/${activePlugin}/message`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1564,16 +1675,54 @@ async function savePluginConfig() {
             })
         });
         
-        if (res.ok) {
-            toast('Credenciales enviadas al plugin', 'success');
-            closePluginModal();
-        } else {
-            const err = await res.text();
-            toast(`Error: ${err}`, 'error');
-        }
+        if (!res.ok) toast('Configuración guardada. Inicia el plugin para enviar credenciales.', 'success');
+        else toast('Configuración guardada y enviada al plugin', 'success');
+        closePluginModal();
+        fetchPlugins();
     } catch (e) {
         toast(`Error de red: ${e.message}`, 'error');
     }
+}
+
+async function startPlugin(id) {
+  await pluginAction(id, 'start');
+}
+
+async function stopPlugin(id) {
+  await pluginAction(id, 'stop');
+}
+
+async function restartPlugin(id) {
+  await pluginAction(id, 'restart');
+}
+
+async function pluginAction(id, action) {
+  try {
+    const res = await fetch(`${API}/api/plugins/${id}/${action}`, { method: 'POST' });
+    if (!res.ok) throw new Error(await res.text());
+    toast(`Plugin ${id}: ${action}`, 'success');
+  } catch (e) {
+    toast(e.message || 'Error de plugin', 'error');
+  }
+  fetchPlugins();
+}
+
+async function createLocalPlugin() {
+  const name = prompt('Nombre del nuevo plugin local');
+  if (!name) return;
+  const id = safeStreamId(name);
+  try {
+    const res = await fetch(API + '/api/plugins', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, name, description: 'Plugin local creado desde Scryvex' })
+    });
+    if (!res.ok) throw new Error(await res.text());
+    toast('Plugin local creado', 'success');
+    fetchPlugins();
+  } catch (e) {
+    toast(e.message || 'No se pudo crear el plugin', 'error');
+  }
 }
 
 function saveCodecSettings() {

@@ -146,7 +146,7 @@
         <div class="svc-dot"></div>
         <div class="svc-info">
           <span class="svc-name">Go API Server</span>
-          <span class="svc-port">:8080</span>
+          <span class="svc-port">:1994</span>
         </div>
         <span class="svc-status">Chequeando...</span>
       </div>
@@ -205,8 +205,11 @@
   <!-- ── PAGE: PLUGINS ─────────────────────────────────────────── -->
   <section class="page" id="page-plugins">
     <div class="section-header">
-      <h2>Plugins de Marcas (Scryvex 1.0)</h2>
-      <p style="font-size:13px; color:var(--text3)">Configura tus cuentas para detección nativa y control total.</p>
+      <div>
+        <h2>Plugins locales</h2>
+        <p style="font-size:13px; color:var(--text3)">Configura, inicia y crea integraciones locales.</p>
+      </div>
+      <button class="btn-primary" onclick="createLocalPlugin()">+ Crear plugin</button>
     </div>
     <div class="plugins-grid" id="plugins-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px; margin-top:20px;">
       <!-- Ring Plugin -->
@@ -725,7 +728,7 @@
 <!-- ── TOAST ──────────────────────────────────────────────────── -->
 <div class="toast" id="toast"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="qrcode.min.js"></script>
 <script src="app.js?v=1.0.0-final-debug-2"></script>
 </body>
 </html>

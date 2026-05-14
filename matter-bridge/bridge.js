@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * CamBridge — Matter Bridge
+ * Scryvex — Matter Bridge
  * Genera QRs Matter por cámara, multi-fabric simultáneo
  * HomeKit · Google Home · Alexa · SmartThings
  *
@@ -11,7 +11,6 @@
 "use strict";
 
 const http   = require("http");
-const https  = require("https");
 const path   = require("path");
 const fs     = require("fs");
 const crypto = require("crypto");
@@ -25,7 +24,7 @@ const args = Object.fromEntries(
 );
 const MATTER_PORT  = parseInt(args.port     || process.env.MATTER_PORT  || "5580");
 const DATA_DIR     = args.dataDir            || process.env.MATTER_DATA  || "./data/matter";
-const API_URL      = args.apiUrl             || process.env.API_URL      || "http://localhost:8080";
+const API_URL      = args.apiUrl             || process.env.API_URL      || "http://localhost:1994";
 const VID          = parseInt(process.env.MATTER_VID || "4447");   // 0x1102 = Aqara / Lumi United
 const PID          = parseInt(process.env.MATTER_PID || "1");      // 0x0001
 const CD_BLOB      = process.env.MATTER_CD_BLOB || "STANDARD_CERTIFIED_DECLARATION";
@@ -178,8 +177,7 @@ const server = http.createServer((req, res) => {
       passcode:     d.passcode,
       fabrics:      d.fabrics,
       createdAt:    d.createdAt,
-      // URL para generar el QR visual (usa API pública de QR)
-      qrImageUrl:   `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(d.qrPayload)}`,
+      qrImageUrl:   null,
     }));
     res.end(JSON.stringify({ cameras: list, count: list.length }));
     return;
@@ -198,7 +196,7 @@ const server = http.createServer((req, res) => {
       res.statusCode = 201;
       res.end(JSON.stringify({
         ...device,
-        qrImageUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(device.qrPayload)}`,
+        qrImageUrl: null,
         instructions: {
           homekit:     "Home app → + → Agregar accesorio → Escanear código",
           googleHome:  "Google Home → + → Configurar dispositivo → Matter",
@@ -217,7 +215,7 @@ const server = http.createServer((req, res) => {
     if (!device) { res.statusCode=404; res.end(JSON.stringify({error:"no encontrada"})); return; }
     res.end(JSON.stringify({
       ...device,
-      qrImageUrl: `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(device.qrPayload)}`,
+      qrImageUrl: null,
     }));
     return;
   }
@@ -249,6 +247,8 @@ const server = http.createServer((req, res) => {
       vid: VID, pid: PID,
       cameras: cameraDevices.size,
       fabrics: fabricRegistry.size,
+      matterStack: "qr-payload-only",
+      note: "Este bridge genera payload y codigo manual localmente. El emparejamiento certificado requiere un stack Matter completo.",
     }));
     return;
   }
@@ -264,7 +264,7 @@ server.listen(7878, "0.0.0.0", () => {
 
 // Cargar cámaras persistidas al inicio
 loadPersistedDevices();
-console.log(`[matter] ✅ CamBridge Matter Bridge iniciado`);
+console.log(`[matter] ✅ Scryvex Matter Bridge iniciado`);
 console.log(`[matter] VID=0x${VID.toString(16).toUpperCase()} PID=0x${PID.toString(16).toUpperCase()}`);
 
 // Manejo de señales

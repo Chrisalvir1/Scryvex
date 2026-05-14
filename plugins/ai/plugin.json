@@ -1,0 +1,11 @@
+{
+  "id": "ai",
+  "name": "Scryvex AI",
+  "version": "0.1.0",
+  "description": "Motor local de deteccion y eventos para streams registrados.",
+  "entry": "index.js",
+  "autoStart": true,
+  "implemented": true,
+  "brand": "Scryvex",
+  "interfaces": ["MotionSensor"]
+}

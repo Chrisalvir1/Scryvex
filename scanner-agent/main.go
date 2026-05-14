@@ -1,5 +1,5 @@
-// CamBridge Scanner Agent — corre DIRECTAMENTE en el host macOS (o Linux),
-// NO dentro de Docker. Expone un endpoint HTTP que CamBridge puede llamar
+// Scryvex Scanner Agent — corre DIRECTAMENTE en el host macOS (o Linux),
+// NO dentro de Docker. Expone un endpoint HTTP que Scryvex puede llamar
 // desde el contenedor via host.docker.internal:9876/scan
 package main
 
@@ -45,7 +45,7 @@ func main() {
 		fmt.Fprint(w, `{"ok":true}`)
 	})
 
-	log.Printf("🔍 CamBridge Scanner Agent corriendo en :%s", port)
+	log.Printf("🔍 Scryvex Scanner Agent corriendo en :%s", port)
 	log.Printf("   Llamar desde Docker: http://host.docker.internal:%s/scan", port)
 	http.ListenAndServe(":"+port, nil)
 }
@@ -92,7 +92,7 @@ func wsDiscovery() {
             xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery"
             xmlns:dn="http://www.onvif.org/ver10/network/wsdl">
   <e:Header>
-    <w:MessageID>uuid:cambrige-agent-001</w:MessageID>
+    <w:MessageID>uuid:scryvex-agent-001</w:MessageID>
     <w:To>urn:schemas-xmlsoap-org:ws:2005:04:discovery</w:To>
     <w:Action>http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</w:Action>
   </e:Header>

@@ -1,5 +1,5 @@
 # ═══════════════════════════════════════════════════════════════════════════
-#  CamBridge — Dockerfile multi-stage multi-arch
+#  Scryvex — Dockerfile multi-stage multi-arch
 #  Soporta: linux/amd64 (Mac Intel / Linux) · linux/arm64 (Mac M1+ / RPi4/5)
 # ═══════════════════════════════════════════════════════════════════════════
 ARG TARGETARCH=amd64
@@ -11,7 +11,7 @@ COPY go.mod ./
 RUN go mod download 2>/dev/null || true
 COPY cmd/     cmd/
 COPY internal/ internal/
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o cambrige-server ./cmd/server/
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o scryvex-server ./cmd/server/
 
 # ── Stage 2: Imagen final ─────────────────────────────────────────────────
 FROM alpine:3.20
@@ -39,7 +39,7 @@ RUN ARCH=$(uname -m); \
     echo "✅ go2rtc instalado"
 
 # ── Go server binary ──────────────────────────────────────────────────────
-COPY --from=go-builder /build/cambrige-server /usr/local/bin/cambrige-server
+COPY --from=go-builder /build/scryvex-server /usr/local/bin/scryvex-server
 
 # ── Matter Bridge (Node.js) ───────────────────────────────────────────────
 COPY matter-bridge/ ./matter-bridge/
@@ -64,9 +64,9 @@ RUN mkdir -p \
     /data/snapshots \
     /logs
 
-EXPOSE 8080 1984 8554 8555 5580/udp 7878
+EXPOSE 1994 1984 8554 8555 5580/udp 7878
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD wget -qO- http://localhost:8080/api/status || exit 1
+    CMD wget -qO- http://localhost:1994/api/status || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]

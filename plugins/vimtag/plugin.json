@@ -1,0 +1,11 @@
+{
+  "id": "vimtag",
+  "name": "Vimtag",
+  "version": "0.1.0",
+  "description": "Plantilla local para integracion Vimtag/Fujikam.",
+  "entry": "index.js",
+  "autoStart": false,
+  "implemented": false,
+  "brand": "Vimtag",
+  "interfaces": ["VideoCamera"]
+}

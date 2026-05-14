@@ -11,12 +11,19 @@ CONFIG="$SCRIPT_DIR/configs/scryvex.yaml"
 GO2RTC_CONFIG="$SCRIPT_DIR/configs/go2rtc.yaml"
 PORT=${PORT:-1994}
 
-mkdir -p "$LOG_DIR" "$DATA_DIR/matter/certs" "$DATA_DIR/matter/fabrics" "$DATA_DIR/recordings"
-
 RED='\033[0;31m'; GREEN='\033[0;32m'; BLUE='\033[0;34m'; YELLOW='\033[1;33m'; NC='\033[0m'
 ok()   { echo -e "${GREEN}✅ $1${NC}"; }
 info() { echo -e "${BLUE}▶  $1${NC}"; }
 warn() { echo -e "${YELLOW}⚠️  $1${NC}"; }
+
+mkdir -p "$LOG_DIR" "$DATA_DIR/matter/certs" "$DATA_DIR/matter/fabrics" "$DATA_DIR/recordings"
+if ! touch "$LOG_DIR/.write-test" 2>/dev/null; then
+  LOG_DIR="$DATA_DIR/logs"
+  mkdir -p "$LOG_DIR"
+  warn "logs/ no es escribible; usando $LOG_DIR"
+else
+  rm -f "$LOG_DIR/.write-test"
+fi
 
 echo -e "${BLUE}"
 echo "  ╔═════════════════════════════════════════╗"
@@ -29,15 +36,15 @@ echo -e "${NC}"
 pkill -f "go2rtc"          2>/dev/null || true
 pkill -f "bridge.js"       2>/dev/null || true
 pkill -f "scryvex-server"  2>/dev/null || true
-pkill -f "cambridge-server" 2>/dev/null || true
-pkill -f "cambrige-scanner" 2>/dev/null || true
+pkill -f "scryvex-scanner" 2>/dev/null || true
 sleep 1
 
 # ── 1. go2rtc ──────────────────────────────────────────────────────────────
 GO2RTC_BIN="$SCRIPT_DIR/bin/go2rtc"
-if [ ! -f "$GO2RTC_BIN" ]; then
-  warn "go2rtc no encontrado en bin/ — ejecuta ./install.sh primero"
+if [ ! -s "$GO2RTC_BIN" ] || grep -q "Not Found" "$GO2RTC_BIN" 2>/dev/null; then
+  warn "go2rtc no encontrado o inválido en bin/ — ejecuta ./install.sh para descargarlo"
 else
+  chmod +x "$GO2RTC_BIN" 2>/dev/null || true
   info "Iniciando go2rtc..."
   "$GO2RTC_BIN" -config "$GO2RTC_CONFIG" >> "$LOG_DIR/go2rtc.log" 2>&1 &
   sleep 1
@@ -58,7 +65,7 @@ if command -v node &>/dev/null; then
     fi
     info "Iniciando matter-bridge..."
     node "$SCRIPT_DIR/matter-bridge/bridge.js" \
-      --port 7878 \
+      --port 5580 \
       --data-dir "$DATA_DIR/matter" \
       --api-url "http://localhost:$PORT" \
       >> "$LOG_DIR/matter-bridge.log" 2>&1 &
@@ -76,16 +83,16 @@ fi
 # ── 3. Scanner Agent ───────────────────────────────────────────────────────
 ARCH=$(uname -m)
 if [ "$ARCH" = "arm64" ]; then
-  SCANNER_BIN="$SCRIPT_DIR/scanner-agent/cambrige-scanner-arm64"
+  SCANNER_BIN="$SCRIPT_DIR/scanner-agent/scryvex-scanner-arm64"
 else
-  SCANNER_BIN="$SCRIPT_DIR/scanner-agent/cambrige-scanner-amd64"
+  SCANNER_BIN="$SCRIPT_DIR/scanner-agent/scryvex-scanner-amd64"
 fi
 if [ -f "$SCANNER_BIN" ]; then
   info "Iniciando Scanner Agent..."
   chmod +x "$SCANNER_BIN"
   "$SCANNER_BIN" >> "$LOG_DIR/scanner.log" 2>&1 &
   sleep 1
-  if pgrep -f "cambrige-scanner" > /dev/null; then
+  if pgrep -f "scryvex-scanner" > /dev/null; then
     ok "Scanner Agent corriendo :9876"
   else
     warn "Scanner Agent no arrancó"

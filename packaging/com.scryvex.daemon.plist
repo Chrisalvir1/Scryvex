@@ -12,7 +12,7 @@
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>HOME_DIR/.scryvex/bin/scryvex-start</string>
+    <string>SCRYVEX_DIR/build/scryvex-hub</string>
   </array>
 
   <!-- Arrancar al encender, antes de login -->
@@ -24,7 +24,7 @@
   <true/>
 
   <key>WorkingDirectory</key>
-  <string>HOME_DIR/.scryvex</string>
+  <string>SCRYVEX_DIR</string>
 
   <!-- Variables de entorno -->
   <key>EnvironmentVariables</key>
@@ -38,9 +38,9 @@
   </dict>
 
   <key>StandardOutPath</key>
-  <string>HOME_DIR/.scryvex/logs/daemon.log</string>
+  <string>SCRYVEX_DIR/logs/daemon.log</string>
   <key>StandardErrorPath</key>
-  <string>HOME_DIR/.scryvex/logs/daemon-error.log</string>
+  <string>SCRYVEX_DIR/logs/daemon-error.log</string>
 
   <!-- Throttle: esperar 10s antes de reintentar si falla -->
   <key>ThrottleInterval</key>

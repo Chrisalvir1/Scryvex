@@ -1,0 +1,11 @@
+{
+  "id": "ring",
+  "name": "Ring",
+  "version": "0.1.0",
+  "description": "Camaras y timbres Ring mediante sesion local.",
+  "entry": "index.js",
+  "autoStart": true,
+  "implemented": true,
+  "brand": "Ring",
+  "interfaces": ["VideoCamera", "MotionSensor", "Battery"]
+}

@@ -61,7 +61,7 @@ func NewManager(dataDir string) (*Manager, error) {
 	if err := m.load(); err != nil {
 		// Si el archivo no existe, crear usuario admin por defecto
 		defaultPwd := randomHex(4) // contraseña aleatoria de 8 chars
-		fmt.Printf("\n🔐 ===== CamBridge: Primer Inicio =====\n")
+		fmt.Printf("\n🔐 ===== Scryvex: Primer Inicio =====\n")
 		fmt.Printf("    Usuario admin creado automáticamente:\n")
 		fmt.Printf("    Usuario:    admin\n")
 		fmt.Printf("    Contraseña: %s\n", defaultPwd)
@@ -71,7 +71,7 @@ func NewManager(dataDir string) (*Manager, error) {
 		admin := &User{
 			ID:           randomHex(8),
 			Username:     "admin",
-			Email:        "admin@cambrige.local",
+			Email:        "admin@scryvex.local",
 			PasswordHash: hashPassword(defaultPwd),
 			Role:         RoleAdmin,
 			CreatedAt:    time.Now(),

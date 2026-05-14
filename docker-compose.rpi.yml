@@ -28,7 +28,7 @@ services:
 
     environment:
       - TZ=${TZ:-America/Costa_Rica}
-      - PORT=1995
+      - PORT=1994
       - MATTER_PORT=5580
       - MATTER_VID=${MATTER_VID:-65521}
       - MATTER_PID=${MATTER_PID:-32768}
@@ -62,7 +62,7 @@ services:
     privileged: false
 
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:1995/api/status"]
+      test: ["CMD", "curl", "-sf", "http://localhost:1994/api/status"]
       interval: 30s
       timeout: 15s
       retries: 5

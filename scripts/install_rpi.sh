@@ -1,5 +1,5 @@
 #!/bin/bash
-# CamBridge — Instalador Raspberry Pi OS (arm64)
+# Scryvex — Instalador Raspberry Pi OS (arm64)
 # Probado en: Raspberry Pi 4/5 con Raspberry Pi OS Bookworm 64-bit
 set -euo pipefail
 
@@ -103,7 +103,7 @@ echo -e "${GREEN}╔════════════════════
 echo -e "${GREEN}║       ✅ Scryvex instalado en Raspberry Pi         ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "  ${BLUE}UI Web:${NC}   http://$LOCAL_IP:1995"
+echo -e "  ${BLUE}UI Web:${NC}   http://$LOCAL_IP:1994"
 echo -e "  ${BLUE}go2rtc:${NC}   http://$LOCAL_IP:1984"
 echo -e "  ${BLUE}Config:${NC}   $INSTALL_DIR/configs/"
 echo -e "  ${BLUE}Logs:${NC}     $INSTALL_DIR/logs/"

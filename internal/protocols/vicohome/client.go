@@ -107,7 +107,7 @@ type eventListResponse struct {
 	} `json:"data"`
 }
 
-// Camera representa una cámara VicoHome en CamBridge
+// Camera representa una cámara VicoHome en Scryvex
 type Camera struct {
 	ID         string
 	Name       string
@@ -397,7 +397,7 @@ func (c *Client) post(path string, body []byte, auth bool) (*http.Response, erro
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent",   "VicoHome/3.0 CamBridge/0.1")
+	req.Header.Set("User-Agent",   "VicoHome/3.0 Scryvex/1.0")
 	if auth {
 		req.Header.Set("Authorization", "Bearer "+c.accessToken)
 	}
