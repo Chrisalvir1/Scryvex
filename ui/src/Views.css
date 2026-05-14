@@ -1,138 +1,26 @@
-/* Camera Management View */
-.view-container {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  animation: fadeIn 0.4s ease;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.view-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
-}
-
-.view-header h2 {
-  margin: 0;
-  font-size: 24px;
-}
-
-.full-width {
-  flex: 1;
-}
-
-.cam-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-.cam-table th {
-  text-align: left;
-  padding: 15px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 600;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.cam-table td {
-  padding: 20px 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-  font-size: 14px;
-}
-
-.dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 8px;
-}
-
-.dot.active {
-  background: #10b981;
-  box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-}
-
-.btn-icon {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-  margin-right: 10px;
-}
-
-.btn-icon:hover {
-  opacity: 1;
-}
-
-.btn-icon.red:hover {
-  filter: hue-rotate(300deg) saturate(3);
-}
-
-.camera-grid {
+.form-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  padding: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
 }
 
-.camera-item {
-  position: relative;
-  overflow: hidden;
-  height: 180px;
-}
-
-.cam-placeholder {
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.cam-info {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.cam-name {
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.cam-url {
-  font-size: 11px;
-  opacity: 0.4;
-  word-break: break-all;
-}
-
-.btn-view {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  padding: 8px 15px;
-  border-radius: 8px;
-  font-size: 11px;
+.warning-tag {
+  background: rgba(255, 159, 10, 0.1);
+  color: #ff9f0a;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 10px;
   font-weight: 800;
-  cursor: pointer;
-  align-self: flex-start;
+  border: 1px solid rgba(255, 159, 10, 0.2);
 }
 
-.btn-view:hover {
-  background: #3b82f6;
-  border-color: #3b82f6;
+.dot.warning {
+  background: #ff9f0a;
+  box-shadow: 0 0 10px rgba(255, 159, 10, 0.5);
+}
+
+.cam-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
