@@ -1,8 +1,0 @@
-{
-  "dependencies": {
-    "express": "^5.2.1",
-    "onnxruntime-node": "^1.26.0",
-    "ring-client-api": "^9.13.0",
-    "sharp": "^0.34.5"
-  }
-}

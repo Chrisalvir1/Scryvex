@@ -1,5 +1,0 @@
-20:41:22.053 INF go2rtc platform=darwin/arm64 revision=b5948cf version=1.9.14
-20:41:22.056 INF config path=/Users/chrisalvir/.scryvex/configs/go2rtc.yaml
-20:41:22.059 ERR [api] listen error="listen tcp :1984: bind: address already in use"
-20:41:22.060 ERR [rtsp] listen error="listen tcp :8554: bind: address already in use"
-exit with signal: terminated
