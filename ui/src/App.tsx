@@ -3,6 +3,7 @@ import './App.css'
 import './Modal.css'
 import './Views.css'
 import './Player.css'
+import './CameraCard.css'
 
 function App() {
   const [status, setStatus] = useState<any>(null)
@@ -80,7 +81,6 @@ function App() {
         method: 'DELETE'
       })
       if (res.ok) {
-        // También borrar de go2rtc
         await fetch(`http://localhost:1984/api/streams?name=${encodeURIComponent(name)}`, {
           method: 'DELETE'
         })
@@ -92,33 +92,39 @@ function App() {
   }
 
   const renderDashboard = () => (
-    <section className="grid">
-      <div className="glass card hero">
+    <section className="dashboard-grid">
+      <div className="glass main-card hero">
         <div className="card-header">
-          <h3>Live Monitoring</h3>
+          <div className="header-titles">
+            <h3>Live Monitoring</h3>
+            <p className="card-subtitle">Real-time surveillance feeds</p>
+          </div>
           <span className="badge">ACTIVE</span>
         </div>
         
         {cameras.length === 0 ? (
           <div className="empty-state">
-            <div className="icon">📹</div>
+            <div className="empty-icon">📹</div>
             <p>No active video streams</p>
-            <button className="btn-secondary" onClick={() => setShowAddModal(true)}>Setup Camera</button>
+            <button className="btn-setup" onClick={() => setShowAddModal(true)}>Add First Camera</button>
           </div>
         ) : (
           <div className="camera-grid">
             {cameras.map((cam, idx) => (
               <div key={idx} className="camera-item glass">
-                <div className="cam-placeholder">
-                  <div className="cam-info">
-                    <span className="cam-name">{cam.name}</span>
-                    <span className="cam-url">{cam.url.substring(0, 30)}...</span>
+                <div className="cam-preview-placeholder">
+                  <span className="icon-large">📹</span>
+                  <div className="cam-status-overlay">
+                    {!cam.url.includes('@') && <span className="auth-warning">🔐 AUTH?</span>}
+                    <span className="live-dot-container"><span className="live-dot"></span> LIVE</span>
                   </div>
-                  <div className="cam-actions">
-                    <button className="btn-view" onClick={() => setSelectedCam(cam)}>VIEW LIVE</button>
-                    {!cam.url.includes('@') && (
-                      <span className="warning-tag">⚠️ Auth Required</span>
-                    )}
+                </div>
+                <div className="cam-details">
+                  <span className="cam-name">{cam.name}</span>
+                  <span className="cam-url-sub">{cam.url.replace(/:.*@/, ':****@')}</span>
+                  <div className="cam-footer">
+                    <button className="btn-view-live" onClick={() => setSelectedCam(cam)}>VIEW STREAM</button>
+                    <button className="btn-mini-delete" onClick={() => handleDeleteCamera(cam.ID, cam.name)}>🗑️</button>
                   </div>
                 </div>
               </div>
@@ -127,24 +133,29 @@ function App() {
         )}
       </div>
       
-      <div className="glass card stats">
-        <h3>System Health</h3>
-        <div className="stat-row">
-          <div className="stat-label"><span>CPU Usage</span><span>{Math.round(systemInfo.cpu)}%</span></div>
-          <div className="progress-bar"><div className="fill" style={{width: `${systemInfo.cpu}%`}}></div></div>
+      <div className="side-cards">
+        <div className="glass card stats">
+          <h3>System Health</h3>
+          <div className="stat-group">
+            <div className="stat-label"><span>CPU Usage</span><span>{Math.round(systemInfo.cpu)}%</span></div>
+            <div className="progress-bar"><div className="fill" style={{width: `${systemInfo.cpu}%`}}></div></div>
+          </div>
+          <div className="stat-group">
+            <div className="stat-label"><span>Memory</span><span>{Math.round(systemInfo.memory)}%</span></div>
+            <div className="progress-bar"><div className="fill" style={{width: `${systemInfo.memory}%`}}></div></div>
+          </div>
         </div>
-        <div className="stat-row">
-          <div className="stat-label"><span>Memory</span><span>{Math.round(systemInfo.memory)}%</span></div>
-          <div className="progress-bar"><div className="fill" style={{width: `${systemInfo.memory}%`}}></div></div>
-        </div>
-      </div>
 
-      <div className="glass card actions">
-        <h3>Quick Actions</h3>
-        <div className="action-grid">
-          <button className="glass-btn" onClick={() => setShowAddModal(true)}>Add Device</button>
-          <button className="glass-btn" onClick={() => alert('Searching network...')}>Scan</button>
-          <button className="glass-btn" onClick={() => setCurrentView('cameras')}>Manage</button>
+        <div className="glass card actions">
+          <h3>Quick Actions</h3>
+          <div className="action-grid-vertical">
+            <button className="action-btn-wide" onClick={() => setShowAddModal(true)}>
+              <span className="icon">➕</span> Add New Device
+            </button>
+            <button className="action-btn-wide" onClick={() => setCurrentView('cameras')}>
+              <span className="icon">⚙️</span> Manage All
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -195,7 +206,10 @@ function App() {
       </div>
 
       <nav className="glass sidebar">
-        <div className="logo">SCRYVEX</div>
+        <div className="logo-area">
+          <div className="logo-icon">S</div>
+          <div className="logo-text">SCRYVEX</div>
+        </div>
         <ul className="nav-links">
           <li className={currentView === 'dashboard' ? 'active' : ''} onClick={() => setCurrentView('dashboard')}>Dashboard</li>
           <li className={currentView === 'cameras' ? 'active' : ''} onClick={() => setCurrentView('cameras')}>Cameras</li>
@@ -231,7 +245,10 @@ function App() {
       {showAddModal && (
         <div className="modal-overlay">
           <div className="glass modal-content">
-            <h2>Connect Device</h2>
+            <div className="modal-header">
+              <h2>Connect Device</h2>
+              <p>Register a new RTSP camera to your hub</p>
+            </div>
             <form onSubmit={handleAddCamera}>
               <div className="form-group">
                 <label>Device Name</label>
@@ -275,7 +292,7 @@ function App() {
               </div>
               <div className="modal-actions">
                 <button type="button" className="btn-ghost" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary">Verify & Add</button>
+                <button type="submit" className="btn-primary">Verify & Add Device</button>
               </div>
             </form>
           </div>
@@ -287,10 +304,11 @@ function App() {
         <div className="modal-overlay" onClick={() => setSelectedCam(null)}>
           <div className="glass player-modal" onClick={e => e.stopPropagation()}>
             <div className="player-header">
-              <h3>{selectedCam.name}</h3>
-              <div className="player-controls">
-                <button className="btn-close" onClick={() => setSelectedCam(null)}>×</button>
+              <div className="player-title">
+                <span className="live-dot"></span>
+                <h3>{selectedCam.name} - LIVE FEED</h3>
               </div>
+              <button className="btn-close" onClick={() => setSelectedCam(null)}>×</button>
             </div>
             <div className="video-container">
               <iframe 
