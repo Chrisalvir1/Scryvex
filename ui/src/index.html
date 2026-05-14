@@ -323,6 +323,25 @@
     <div class="settings-grid">
 
       <div class="settings-card glass">
+        <h3>📹 Calidad de Video y Codecs</h3>
+        <div class="form-group">
+          <label>Codec de Video (Stream Principal)</label>
+          <select id="cfg-codec" class="glass-input">
+            <option value="h264">H.264 (Máxima Compatibilidad)</option>
+            <option value="h265">H.265 / HEVC (Máxima Calidad / Apple Nativo)</option>
+            <option value="auto" selected>Automático (Recomendado)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Modo de Baja Latencia (Zero-Lag)</label>
+          <div class="toggle active" id="toggle-lowlatency" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
+        </div>
+        <p style="font-size:11px; color:var(--text3); margin-top:8px;">
+          ℹ️ H.265 consume menos ancho de banda pero requiere hardware moderno.
+        </p>
+      </div>
+
+      <div class="settings-card glass">
         <h3>🌐 Zona horaria</h3>
         <div class="form-group">
           <label>TZ</label>

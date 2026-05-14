@@ -668,8 +668,16 @@ function viewStream(i, btn) {
 
   activeStreamIndex = i; // Bloquear el refresco del DOM
 
-  // Forzar siempre reproducción inline. NO hay window.open aquí.
-  const iframeSrc = `/go2rtc/stream.html?src=${encodeURIComponent(streamId)}&mode=webrtc,mse,mp4,mjpeg`;
+  const codec = localStorage.getItem('scryvex_codec') || 'auto';
+  const lowLatency = localStorage.getItem('scryvex_lowlatency') === 'true';
+
+  // Configuración de go2rtc para Scryvex 1.0 (Zero Lag & High Quality)
+  let params = `src=${encodeURIComponent(streamId)}&mode=webrtc,mse`;
+  if (codec === 'h265') params += '&video=h265';
+  if (codec === 'h264') params += '&video=h264';
+  if (lowLatency) params += '&video=fast';
+  
+  const iframeSrc = `/go2rtc/stream.html?${params}`;
   
   preview.innerHTML = `
     <iframe src="${iframeSrc}" style="width:100%;height:100%;border:none;border-radius:12px;background:#000" allow="autoplay; fullscreen"></iframe>
@@ -1487,4 +1495,15 @@ async function savePluginConfig() {
     } catch (e) {
         toast(`Error de red: ${e.message}`, 'error');
     }
+}
+
+function saveCodecSettings() {
+    const codec = document.getElementById('cfg-codec').value;
+    const lowLatency = document.getElementById('toggle-lowlatency').classList.contains('active');
+    
+    // Guardar en localStorage para persistencia en UI
+    localStorage.setItem('scryvex_codec', codec);
+    localStorage.setItem('scryvex_lowlatency', lowLatency);
+    
+    toast('Configuración de video actualizada', 'success');
 }

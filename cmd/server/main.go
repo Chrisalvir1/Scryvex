@@ -57,7 +57,7 @@ func main() {
 	
 	// Iniciar plugins de la Fase 1
 	go func() {
-		pluginsToStart := []string{"ring", "vicohome", "tuya", "ezviz", "wyze", "tapo", "vimtag"}
+		pluginsToStart := []string{"ring", "vicohome", "tuya", "ezviz", "wyze", "tapo", "vimtag", "ai"}
 		for _, p := range pluginsToStart {
 			script := "/Users/chrisalvir/Desktop/Scryvex/plugins/" + p + "/index.js"
 			if _, err := os.Stat(script); err == nil {
