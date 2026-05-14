@@ -1,9 +1,20 @@
-// Scryvex UI v0.2.0 — app.js con Auth
+// Scryvex UI v1.0.0 — app.js con Auth
 const API = '';
 
+// ── localStorage helpers (safe — sandbox/Docker may block storage) ──
+function lsGet(key, fallback = null) {
+  try { const v = localStorage.getItem(key); return v !== null ? v : fallback; } catch { return fallback; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* storage unavailable */ }
+}
+function lsRemove(key) {
+  try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
+}
+
 // ── Auth State ────────────────────────────────────────────────
-let authToken = localStorage.getItem('cb_token') || '';
-let authUser = JSON.parse(localStorage.getItem('cb_user') || 'null');
+let authToken = lsGet('cb_token', '');
+let authUser = JSON.parse(lsGet('cb_user', 'null'));
 
 function getHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
@@ -27,7 +38,8 @@ function bootApp() {
   // Mostrar nombre de usuario en sidebar
   const userEl = document.getElementById('sidebar-user');
   if (userEl && authUser) {
-    const avatar = authUser.avatar_url ? `<img src="${authUser.avatar_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">${authUser.username[0].toUpperCase()}</div>`;
+    const userInitial = (authUser && authUser.username) ? authUser.username[0].toUpperCase() : '?';
+    const avatar = (authUser && authUser.avatar_url) ? `<img src="${authUser.avatar_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">${userInitial}</div>`;
     userEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08);margin-top:auto;cursor:pointer" onclick="openProfileModal()">
         ${avatar}
@@ -129,14 +141,14 @@ async function fetchCameras() {
     if (Array.isArray(backendCams) && backendCams.length > 0) {
       cameras = backendCams;
       // Also sync to localStorage as backup
-      localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+      lsSet('cb_cameras', JSON.stringify(cameras));
     } else {
       // Backend empty - check localStorage as fallback
-      const local = JSON.parse(localStorage.getItem('cb_cameras') || '[]');
+      const local = JSON.parse(lsGet('cb_cameras') || '[]');
       cameras = local;
     }
   } catch {
-    cameras = JSON.parse(localStorage.getItem('cb_cameras') || '[]');
+    cameras = JSON.parse(lsGet('cb_cameras') || '[]');
   }
   renderCameras();
 }
@@ -324,7 +336,7 @@ function addCamera() {
 
 function saveNewCamera(cam) {
   cameras.push(cam);
-  localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+  lsSet('cb_cameras', JSON.stringify(cameras));
   renderCameras();
   closeModal();
   toast('✅ Cámara "' + cam.name + '" agregada', 'success');
@@ -423,6 +435,16 @@ const BRAND_PLUGINS = {
     note: '🌿 Compatible con Aqara G3, G2H Pro y plataforma de cámaras.',
     api: 'aqara',
   },
+  'Vimtag': {
+    logo: '📦', name: 'Vimtag / Fujikam',
+    desc: 'Conecta cámaras Vimtag y Fujikam con tu cuenta de la app.',
+    fields: [
+      { id: 'cloud-user', label: 'Usuario/Email', type: 'text', ph: 'usuario' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+    ],
+    note: '📦 Compatible con modelos P1, CP1 y cámaras de exterior.',
+    api: 'vimtag',
+  },
 };
 
 let currentBrand = null;
@@ -447,7 +469,7 @@ function selectBrandPlugin(brand, el) {
   const fieldsEl = document.getElementById('brand-fields');
   fieldsEl.innerHTML = plugin.fields.map(f => {
     // Intentar recuperar el valor guardado para este campo específico de esta marca
-    const savedVal = localStorage.getItem(`cb_cloud_${brand}_${f.id}`) || '';
+    const savedVal = lsGet(`cb_cloud_${brand}_${f.id}`) || '';
     
     if (f.type === 'select') {
       return `<div>
@@ -474,7 +496,7 @@ function selectBrandPlugin(brand, el) {
   document.getElementById('vico-results').innerHTML = '';
   
   setTimeout(() => {
-    const firstEmpty = plugin.fields.find(f => !localStorage.getItem(`cb_cloud_${brand}_${f.id}`));
+    const firstEmpty = plugin.fields.find(f => !lsGet(`cb_cloud_${brand}_${f.id}`));
     if (firstEmpty) document.getElementById(firstEmpty.id)?.focus();
   }, 100);
 }
@@ -500,7 +522,7 @@ async function fetchCloudCameras() {
   // Guardar dinámicamente TODOS los campos de esta marca para persistencia total
   plugin.fields.forEach(f => {
     const val = document.getElementById(f.id)?.value?.trim();
-    if (val) localStorage.setItem(`cb_cloud_${brand}_${f.id}`, val);
+    if (val) lsSet(`cb_cloud_${brand}_${f.id}`, val);
   });
 
   const user = document.getElementById('cloud-user')?.value?.trim();
@@ -553,7 +575,7 @@ async function fetchCloudCameras() {
       
       if (data.ok && data.token) {
         // Guardar el token automáticamente para el Bridge
-        localStorage.setItem('cb_ring_token', data.token);
+        lsSet('cb_ring_token', data.token);
         if (document.getElementById('cfg-ring-token')) document.getElementById('cfg-ring-token').value = data.token;
         
         if (data.cameras && data.cameras.length > 0) {
@@ -681,7 +703,7 @@ function removeCamera(i) {
   // Delete from backend
   fetch(API + '/api/cameras/' + encodeURIComponent(cam.id), { method: 'DELETE' })
     .catch(() => { }); // Silent fail - local state already updated
-  localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+  lsSet('cb_cameras', JSON.stringify(cameras));
   renderCameras();
   toast('Cámara "' + name + '" eliminada', 'success');
 }
@@ -704,8 +726,8 @@ function viewStream(i, btn) {
 
   activeStreamIndex = i; // Bloquear el refresco del DOM
 
-  const codec = localStorage.getItem('scryvex_codec') || 'auto';
-  const lowLatency = localStorage.getItem('scryvex_lowlatency') === 'true';
+  const codec = lsGet('scryvex_codec') || 'auto';
+  const lowLatency = lsGet('scryvex_lowlatency') === 'true';
 
   // Configuración de go2rtc para Scryvex 1.0 (Zero Lag & High Quality)
   let params = `src=${encodeURIComponent(streamId)}&mode=webrtc,mse`;
@@ -863,7 +885,7 @@ function importDiscovered(cam) {
   }).catch(() => {
     // Fallback to localStorage if backend unreachable
     cameras.push(newCam);
-    localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+    lsSet('cb_cameras', JSON.stringify(cameras));
     renderCameras();
     toast('✅ Cámara importada (local): ' + newCam.name, 'success');
   });
@@ -991,7 +1013,7 @@ function saveCamSettings() {
   c.ai = document.getElementById('set-cam-ai').classList.contains('active');
   c.detect_person = document.getElementById('ai-person').checked;
   c.detect_vehicle = document.getElementById('ai-vehicle').checked;
-  localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+  lsSet('cb_cameras', JSON.stringify(cameras));
   renderCameras();
   closeCamSettings();
   toast('💾 Ajustes guardados', 'success');
@@ -1019,7 +1041,7 @@ function saveSettings() {
       gpu: document.getElementById('cfg-gpu').value
     }
   };
-  localStorage.setItem('cb_config', JSON.stringify(cfg));
+  lsSet('cb_config', JSON.stringify(cfg));
   toast('✅ Configuración guardada (reinicia Docker para aplicar)', 'success');
 }
 
@@ -1157,8 +1179,8 @@ async function doLogin() {
 
     authToken = data.token;
     authUser = data.user;
-    localStorage.setItem('cb_token', authToken);
-    localStorage.setItem('cb_user', JSON.stringify(authUser));
+    lsSet('cb_token', authToken);
+    lsSet('cb_user', JSON.stringify(authUser));
 
     // Ocultar login y mostrar app
     document.getElementById('login-screen').style.display = 'none';
@@ -1215,8 +1237,8 @@ async function doReset() {
 function logout() {
   authToken = '';
   authUser = null;
-  localStorage.removeItem('cb_token');
-  localStorage.removeItem('cb_user');
+  lsRemove('cb_token');
+  lsRemove('cb_user');
   location.reload();
 }
 
@@ -1362,7 +1384,7 @@ function openProfileModal() {
           <div id="profile-avatar-preview" 
             onclick="document.getElementById('avatar-upload-input').click()"
             style="width:100px;height:100px;border-radius:50%;margin:0 auto 12px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--accent);cursor:pointer;position:relative;group">
-            ${authUser.avatar_url ? `<img src="${authUser.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:36px;font-weight:700">${authUser.username[0].toUpperCase()}</span>`}
+            ${(authUser && authUser.avatar_url) ? `<img src="${authUser.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:36px;font-weight:700">${(authUser && authUser.username) ? authUser.username[0].toUpperCase() : '?'}</span>`}
             <div style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; color:#fff; font-size:24px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">📷</div>
           </div>
           <input type="file" id="avatar-upload-input" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
@@ -1404,8 +1426,8 @@ async function updateProfile() {
 }
 
 function logout() {
-  localStorage.removeItem('cb_token');
-  localStorage.removeItem('cb_user');
+  lsRemove('cb_token');
+  lsRemove('cb_user');
   location.reload();
 }
 
@@ -1413,9 +1435,9 @@ function logout() {
 // ── Ring Bridge Logic ──────────────────────────────────────────
 async function generateRingToken() {
   const brand = 'Ring';
-  const email = localStorage.getItem(`cb_cloud_${brand}_cloud-user`);
-  const pass = localStorage.getItem(`cb_cloud_${brand}_cloud-pass`);
-  const code = localStorage.getItem(`cb_cloud_${brand}_cloud-2fa`);
+  const email = lsGet(`cb_cloud_${brand}_cloud-user`);
+  const pass = lsGet(`cb_cloud_${brand}_cloud-pass`);
+  const code = lsGet(`cb_cloud_${brand}_cloud-2fa`);
 
   if (!email || !pass) {
     toast('Primero ingresa tus credenciales en el modal de Agregar Cámara -> Ring', 'error');
@@ -1481,6 +1503,7 @@ async function testRingBridge() {
 let activePlugin = null;
 
 function openPluginSettings(id) {
+    console.log('🚀 Abriendo plugin:', id);
     activePlugin = id;
     const config = {
         ring: { name: 'Ring', color: '#007bff', icon: 'R' },
@@ -1491,6 +1514,11 @@ function openPluginSettings(id) {
         ezviz: { name: 'Ezviz', color: '#dc3545', icon: '🛡️' },
         vimtag: { name: 'Vimtag', color: '#17a2b8', icon: '📹' }
     }[id];
+
+    if (!config) {
+        console.error('❌ No se encontró configuración para el plugin:', id);
+        return;
+    }
 
     document.getElementById('plugin-settings-title').textContent = `Configurar ${config.name}`;
     const iconEl = document.getElementById('plugin-settings-icon');
@@ -1538,8 +1566,8 @@ function saveCodecSettings() {
     const lowLatency = document.getElementById('toggle-lowlatency').classList.contains('active');
     
     // Guardar en localStorage para persistencia en UI
-    localStorage.setItem('scryvex_codec', codec);
-    localStorage.setItem('scryvex_lowlatency', lowLatency);
+    lsSet('scryvex_codec', codec);
+    lsSet('scryvex_lowlatency', lowLatency);
     
     toast('Configuración de video actualizada', 'success');
 }
