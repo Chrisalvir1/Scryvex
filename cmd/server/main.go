@@ -47,7 +47,16 @@ func main() {
 	mux.HandleFunc("GET /api/status",    handleStatus(version, *configPath))
 	mux.HandleFunc("GET /api/cameras",   handleGetCameras())
 	mux.HandleFunc("POST /api/cameras",  handleAddCamera())
-	mux.HandleFunc("POST /api/discover", handleDiscover())
+
+	// ── Proxy → Scanner Agent (:9876)
+	mux.HandleFunc("/api/discover", func(w http.ResponseWriter, r *http.Request) {
+		proxy := httputil.NewSingleHostReverseProxy(&url.URL{
+			Scheme: "http",
+			Host:   "localhost:9876",
+		})
+		r.URL.Path = "/scan"
+		proxy.ServeHTTP(w, r)
+	})
 
 	// ── VicoHome snapshots estáticos
 	snapDir := http.Dir(*dataDir + "/snapshots/vicohome")
@@ -136,16 +145,7 @@ func handleAddCamera() http.HandlerFunc {
 	}
 }
 
-func handleDiscover() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status":  "discovering",
-			"message": "Buscando cámaras ONVIF en la red local...",
-			"cameras": []interface{}{},
-		})
-	}
-}
+// handleDiscover eliminado (ahora usa proxy)
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

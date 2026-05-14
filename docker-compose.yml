@@ -1,0 +1,69 @@
+# CamBridge — Docker Compose (macOS / Linux x86_64 / Apple Silicon)
+# Uso:
+#   docker compose up -d          # build + arrancar
+#   docker compose logs -f        # ver logs
+#   docker compose down           # detener
+#
+# NOTA: network_mode: host permite que el escáner de red
+# pueda ver tu LAN real (192.168.x.x) para descubrir cámaras.
+# En macOS, Docker Desktop tiene limitaciones con host networking;
+# en Linux (RPi) funciona perfectamente.
+
+version: "3.9"
+
+services:
+  cambrige:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cambrige
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-America/Costa_Rica}
+      - PORT=8080
+      - MATTER_PORT=${MATTER_PORT:-5580}
+      - MATTER_VID=${MATTER_VID:-65521}
+      - MATTER_PID=${MATTER_PID:-32768}
+      - MATTER_NAME=${MATTER_NAME:-CamBridge Hub}
+      - THREAD_ENABLED=${THREAD_ENABLED:-true}
+      - AI_ENABLED=${AI_ENABLED:-true}
+      - GPU_DEVICE=${GPU_DEVICE:-auto}
+      - TUYA_CLIENT_ID=${TUYA_CLIENT_ID:-}
+      - TUYA_CLIENT_SECRET=${TUYA_CLIENT_SECRET:-}
+      - TUYA_REGION=${TUYA_REGION:-eu}
+      - LAN_SUBNET=${LAN_SUBNET:-}
+    ports:
+      - "8080:8080"
+      - "1984:1984"
+      - "8554:8554"
+      - "8555:8555"
+      - "5580:5580/udp"
+      - "7878:7878"
+    volumes:
+      - cambrige-data:/data
+      - cambrige-logs:/logs
+      - ./configs:/app/configs
+    # Red del host: permite el escaneo LAN real.
+    # En Raspberry Pi / Linux esto descubre todas las cámaras.
+    # En macOS Docker Desktop, se usa el port-mapping de arriba.
+    networks:
+      - cambrige-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  cambrige-data:
+  cambrige-logs:
+
+networks:
+  cambrige-net:
+    driver: bridge
