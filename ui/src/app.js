@@ -1,4 +1,4 @@
-// CamBridge UI v0.2.0 — app.js con Auth
+// Scryvex UI v0.2.0 — app.js con Auth
 const API = '';
 
 // ── Auth State ────────────────────────────────────────────────
@@ -421,7 +421,7 @@ async function startScan() {
     res.innerHTML = `
       <div class="glass" style="padding:24px;text-align:center;color:var(--text2)">
         <div style="font-size:32px;margin-bottom:12px">⚠️</div>
-        API no disponible. Asegúrate de que CamBridge esté corriendo en localhost:8080
+        API no disponible. Asegúrate de que Scryvex esté corriendo en localhost:8080
       </div>`;
   }
   btn.textContent = '🔍 Escanear red';
@@ -513,7 +513,7 @@ function openCameraSettings(i) {
         <div style="margin-top:16px;">
           <h4 style="font-size:12px; color:var(--text3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Ajustes del Sistema</h4>
           <div class="form-group toggle-group">
-            <label>Activar cámara en CamBridge</label>
+            <label>Activar cámara en Scryvex</label>
             <div class="toggle ${c.enabled !== false ? 'active' : ''}" id="set-cam-enabled" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
           </div>
           <div class="form-group toggle-group" style="margin-top: 10px;">
@@ -644,7 +644,7 @@ function showLoginScreen() {
     ">
       <div style="text-align:center; margin-bottom:32px;">
         <div style="font-size:48px; margin-bottom:8px;">🎥</div>
-        <h1 style="font-size:26px; font-weight:700; color:#fff; margin:0">CamBridge</h1>
+        <h1 style="font-size:26px; font-weight:700; color:#fff; margin:0">Scryvex</h1>
         <p style="color:rgba(255,255,255,0.5); font-size:14px; margin:6px 0 0">Camera Matter Bridge</p>
       </div>
       
@@ -674,7 +674,7 @@ function showLoginScreen() {
       </div>
 
       <div id="reset-form" style="display:none;">
-        <p style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:16px;text-align:center;">Ingresa tu usuario. El token de reseteo aparecerá en los logs del servidor CamBridge.</p>
+        <p style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:16px;text-align:center;">Ingresa tu usuario. El token de reseteo aparecerá en los logs del servidor Scryvex.</p>
         <div style="margin-bottom:16px;">
           <input id="reset-user" type="text" placeholder="Usuario"
             style="width:100%; box-sizing:border-box; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px 14px; color:#fff; font-size:14px; outline:none;">
