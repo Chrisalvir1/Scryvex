@@ -9,6 +9,21 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .brand-card {
+      padding: 10px 4px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.03);
+    }
+    .brand-card:hover { border-color: rgba(102,126,234,0.6); background: rgba(102,126,234,0.1); transform: translateY(-2px); }
+    .brand-card.selected { border-color: #667eea; background: rgba(102,126,234,0.2); }
+    .brand-icon { font-size: 22px; margin-bottom: 4px; }
+    .brand-label { font-size: 10px; color: var(--text2); font-weight: 600; line-height: 1.2; }
+  </style>
 </head>
 <body>
 
@@ -358,32 +373,57 @@
       </div>
 
       <div id="form-tuya" style="display:none">
-        <div class="form-group">
-          <label>Marca / Plataforma</label>
-          <select id="cam-cloud-brand" class="glass-input">
-            <option value="Tuya">🏠 Tuya / Smart Life</option>
-            <option value="Vicohome">📹 Vicohome</option>
-            <option value="Ring">🔔 Ring</option>
-            <option value="Google Nest">🌐 Google Nest</option>
-            <option value="Wyze">⚡ Wyze</option>
-            <option value="Tapo">🔵 Tapo</option>
-            <option value="Ezviz">👁️ Ezviz</option>
-            <option value="Aqara">🌿 Aqara</option>
-          </select>
+
+        <!-- PASO 1: Selector de marca como tarjetas -->
+        <div id="brand-picker" style="margin-bottom:16px;">
+          <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Selecciona tu plataforma</div>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;" id="brand-cards">
+            <div onclick="selectBrandPlugin('Tuya',this)" data-brand="Tuya" class="brand-card">
+              <div class="brand-icon">🏠</div><div class="brand-label">Tuya / Smart Life</div>
+            </div>
+            <div onclick="selectBrandPlugin('Vicohome',this)" data-brand="Vicohome" class="brand-card">
+              <div class="brand-icon">📹</div><div class="brand-label">Vicohome</div>
+            </div>
+            <div onclick="selectBrandPlugin('Ring',this)" data-brand="Ring" class="brand-card">
+              <div class="brand-icon">🔔</div><div class="brand-label">Ring</div>
+            </div>
+            <div onclick="selectBrandPlugin('Google Nest',this)" data-brand="Google Nest" class="brand-card">
+              <div class="brand-icon">🌐</div><div class="brand-label">Google Nest</div>
+            </div>
+            <div onclick="selectBrandPlugin('Wyze',this)" data-brand="Wyze" class="brand-card">
+              <div class="brand-icon">⚡</div><div class="brand-label">Wyze</div>
+            </div>
+            <div onclick="selectBrandPlugin('Tapo',this)" data-brand="Tapo" class="brand-card">
+              <div class="brand-icon">🔵</div><div class="brand-label">Tapo</div>
+            </div>
+            <div onclick="selectBrandPlugin('Ezviz',this)" data-brand="Ezviz" class="brand-card">
+              <div class="brand-icon">👁️</div><div class="brand-label">Ezviz</div>
+            </div>
+            <div onclick="selectBrandPlugin('Aqara',this)" data-brand="Aqara" class="brand-card">
+              <div class="brand-icon">🌿</div><div class="brand-label">Aqara</div>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Email / Usuario</label>
-          <input class="glass-input" id="cam-vico-user" type="email" placeholder="" />
+
+        <!-- PASO 2: Formulario dinámico -->
+        <div id="brand-credential-form" style="display:none;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; padding:10px 14px; background:rgba(255,255,255,0.04); border-radius:12px;">
+            <span id="brand-plugin-icon" style="font-size:24px;"></span>
+            <div>
+              <div id="brand-plugin-name" style="font-weight:700; font-size:14px;"></div>
+              <div id="brand-plugin-desc" style="font-size:11px; color:var(--text3);"></div>
+            </div>
+            <button onclick="resetBrandPicker()" style="margin-left:auto; background:none; border:none; color:var(--text3); cursor:pointer; font-size:18px;">&#8592; Cambiar</button>
+          </div>
+          <div id="brand-fields" style="display:flex; flex-direction:column; gap:10px;"></div>
+          <button class="btn-primary" onclick="fetchCloudCameras()" style="margin-top:12px; padding:12px; width:100%; background:linear-gradient(135deg,#10b981,#059669);">🔍 Conectar y Buscar Mis Cámaras</button>
+          <div id="brand-login-note" style="font-size:11px; color:var(--text3); text-align:center; margin-top:8px;"></div>
         </div>
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input class="glass-input" id="cam-vico-pass" type="password" placeholder="" />
-        </div>
-        <button class="btn-primary" onclick="fetchCloudCameras()" style="margin-top:8px; padding: 12px; background: linear-gradient(135deg, #10b981, #059669);">
-          Conectar y Buscar Cámaras
-        </button>
+
+        <!-- PASO 3: Resultados -->
         <div id="vico-results" style="display:none; margin-top:12px; flex-direction:column; gap:8px;"></div>
       </div>
+
 
       <div id="form-hls" style="display:none">
         <div class="form-group">

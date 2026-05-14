@@ -246,17 +246,155 @@ function saveNewCamera(cam) {
   }).catch(() => {});
 }
 
+// ── Brand Plugin System ────────────────────────────────────────
+const BRAND_PLUGINS = {
+  'Tuya': {
+    icon: '🏠', name: 'Tuya / Smart Life',
+    desc: 'Usa tu cuenta de Tuya Smart o Smart Life. Cubre Tuya, Vicohome y cientos de marcas.',
+    fields: [
+      { id: 'cloud-user', label: 'Email', type: 'email', ph: 'tu@email.com' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+      { id: 'cloud-region', label: 'Región', type: 'select', opts: ['América (us)', 'Europa (eu)', 'China (cn)', 'India (in)'] },
+    ],
+    note: '🔒 Tus credenciales se usan localmente y nunca se comparten.',
+    api: 'tuya',
+  },
+  'Vicohome': {
+    icon: '📹', name: 'Vicohome',
+    desc: 'Vicohome usa servidores Tuya. Inicia sesión con tu cuenta de la app Vicohome.',
+    fields: [
+      { id: 'cloud-user', label: 'Email de Vicohome', type: 'email', ph: 'tu@email.com' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+    ],
+    note: '💡 Serás autenticado en los servidores Tuya de Vicohome.',
+    api: 'vicohome',
+  },
+  'Ring': {
+    icon: '🔔', name: 'Ring (Amazon)',
+    desc: 'Importa doorbells y cámaras Ring con tu cuenta de Amazon.',
+    fields: [
+      { id: 'cloud-user', label: 'Email de Ring', type: 'email', ph: 'tu@email.com' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+      { id: 'cloud-2fa', label: 'Código 2FA (si aplica)', type: 'text', ph: '123456' },
+    ],
+    note: '🔔 Ring puede requerir verificación de dos pasos.',
+    api: 'ring',
+  },
+  'Tapo': {
+    icon: '🔵', name: 'Tapo / TP-Link',
+    desc: 'Importa cámaras Tapo C120, C400, C420 y más con tu cuenta TP-Link.',
+    fields: [
+      { id: 'cloud-user', label: 'Email de TP-Link', type: 'email', ph: 'tu@email.com' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+    ],
+    note: '📷 También puedes agregar Tapo por IP en la pestaña RTSP/ONVIF.',
+    api: 'tapo',
+  },
+  'Ezviz': {
+    icon: '👁️', name: 'Ezviz (Hikvision)',
+    desc: 'Importa cámaras Ezviz con tu cuenta de la app.',
+    fields: [
+      { id: 'cloud-user', label: 'Email de Ezviz', type: 'email', ph: 'tu@email.com' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+    ],
+    note: '🌍 Región predeterminada: Global.',
+    api: 'ezviz',
+  },
+  'Wyze': {
+    icon: '⚡', name: 'Wyze',
+    desc: 'Conecta cámaras Wyze Cam con tu cuenta Wyze.',
+    fields: [
+      { id: 'cloud-user', label: 'Email de Wyze', type: 'email', ph: 'tu@email.com' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+      { id: 'cloud-apikey', label: 'API Key (opcional)', type: 'text', ph: 'Desde developer.wyze.com' },
+    ],
+    note: '⚡ Wyze requiere habilitar RTSP en los ajustes de la app.',
+    api: 'wyze',
+  },
+  'Google Nest': {
+    icon: '🌐', name: 'Google Nest',
+    desc: 'Conecta cámaras Nest vía Google Device Access API.',
+    fields: [
+      { id: 'cloud-project', label: 'Project ID', type: 'text', ph: 'enterprise/abc123...' },
+      { id: 'cloud-user', label: 'OAuth Token', type: 'text', ph: 'ya29...' },
+    ],
+    note: '⚠️ Requiere configurar un proyecto en <a href="https://console.nest.google.com" target="_blank" style="color:#667eea">console.nest.google.com</a>',
+    api: 'nest',
+  },
+  'Aqara': {
+    icon: '🌿', name: 'Aqara',
+    desc: 'Importa cámaras y hubs Aqara G3, G2H, E1 con tu cuenta de la app.',
+    fields: [
+      { id: 'cloud-user', label: 'Email de Aqara', type: 'email', ph: 'tu@email.com' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+      { id: 'cloud-region', label: 'Región', type: 'select', opts: ['China (cn)', 'EE.UU. (us)', 'Europa (eu)', 'Korea (kr)'] },
+    ],
+    note: '🌿 Compatible con Aqara G3, G2H Pro y plataforma de cámaras.',
+    api: 'aqara',
+  },
+};
+
+let currentBrand = null;
+
+function selectBrandPlugin(brand, el) {
+  currentBrand = brand;
+  const plugin = BRAND_PLUGINS[brand];
+  if (!plugin) return;
+
+  document.querySelectorAll('.brand-card').forEach(c => c.classList.remove('selected'));
+  if (el) el.classList.add('selected');
+
+  document.getElementById('brand-plugin-icon').textContent = plugin.icon;
+  document.getElementById('brand-plugin-name').textContent = plugin.name;
+  document.getElementById('brand-plugin-desc').textContent = plugin.desc;
+  document.getElementById('brand-login-note').innerHTML = plugin.note;
+
+  const fieldsEl = document.getElementById('brand-fields');
+  fieldsEl.innerHTML = plugin.fields.map(f => {
+    if (f.type === 'select') {
+      return `<div>
+        <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">${f.label}</label>
+        <select id="${f.id}" class="glass-input" style="width:100%">${f.opts.map(o => `<option>${o}</option>`).join('')}</select>
+      </div>`;
+    }
+    return `<div>
+      <label style="font-size:12px;color:var(--text3);display:block;margin-bottom:4px;">${f.label}</label>
+      <input id="${f.id}" class="glass-input" type="${f.type}" placeholder="${f.ph}" style="width:100%;box-sizing:border-box;" onkeydown="if(event.key==='Enter')fetchCloudCameras()">
+    </div>`;
+  }).join('');
+
+  document.getElementById('brand-picker').style.display = 'none';
+  document.getElementById('brand-credential-form').style.display = 'block';
+  document.getElementById('vico-results').style.display = 'none';
+  document.getElementById('vico-results').innerHTML = '';
+  setTimeout(() => document.getElementById('cloud-user')?.focus(), 100);
+}
+
+function resetBrandPicker() {
+  currentBrand = null;
+  document.getElementById('brand-picker').style.display = 'block';
+  document.getElementById('brand-credential-form').style.display = 'none';
+  document.getElementById('vico-results').style.display = 'none';
+  document.querySelectorAll('.brand-card').forEach(c => c.classList.remove('selected'));
+}
+
 async function fetchCloudCameras() {
-  const brand = document.getElementById('cam-cloud-brand').value;
-  const user = document.getElementById('cam-vico-user').value.trim();
-  const pass = document.getElementById('cam-vico-pass').value.trim();
-  if (!user || !pass) { toast('Ingresa tus credenciales', 'error'); return; }
-  
+  const brand = currentBrand;
+  if (!brand) { toast('Selecciona una marca primero', 'error'); return; }
+  const plugin = BRAND_PLUGINS[brand];
+  const user = document.getElementById('cloud-user')?.value?.trim();
+  const pass = document.getElementById('cloud-pass')?.value?.trim();
+  if (!user || !pass) { toast('Completa las credenciales', 'error'); return; }
+
   const resDiv = document.getElementById('vico-results');
   resDiv.style.display = 'flex';
-  resDiv.innerHTML = `<div style="color:var(--text2);text-align:center;font-size:13px">Conectando a la nube de ${brand}... ⏳</div>`;
+  resDiv.innerHTML = `<div style="text-align:center;padding:20px;width:100%;">
+    <div style="font-size:28px;margin-bottom:8px;">${plugin.icon}</div>
+    <div style="font-weight:600;margin-bottom:4px;">Conectando con ${plugin.name}...</div>
+    <div style="font-size:12px;color:var(--text3);">Autenticando y buscando tus cámaras</div>
+  </div>`;
 
-  if (brand === "Vicohome" || brand === "Tuya") {
+  if (plugin.api === 'tuya' || plugin.api === 'vicohome') {
     try {
       const resp = await fetch(API + '/api/vicohome/login', {
         method: 'POST',
@@ -264,49 +402,54 @@ async function fetchCloudCameras() {
         body: JSON.stringify({ email: user, password: pass })
       });
       const data = await resp.json();
-      if (data.cameras) {
-        resDiv.innerHTML = data.cameras.map((c, i) => `
-          <div class="glass" style="padding:12px;display:flex;align-items:center;justify-content:space-between">
-            <div>
-              <div style="font-weight:600;font-size:14px">${c.name}</div>
-              <div style="font-size:11px;color:var(--text3)">MAC: ${c.mac || c.id}</div>
-            </div>
-            <button class="btn-primary" style="padding:6px 12px;font-size:12px" onclick='importDiscovered(${JSON.stringify({
-              id: c.id, name: c.name, type: 'cloud', brand: brand, 
-              stream_url: c.stream_url, ip: c.ip, mac: c.mac, 
-              battery: c.battery, is_native_rtsp: c.is_native_rtsp
-            })})'>Agregar</button>
-          </div>
-        `).join('');
-        toast('✅ Sesión iniciada en ' + brand, 'success');
+      if (data.cameras && data.cameras.length > 0) {
+        showCloudResults(brand, data.cameras, plugin.icon);
+        toast(`✅ ${data.cameras.length} cámara(s) encontradas`, 'success');
       } else {
-        throw new Error();
+        throw new Error('no_cameras');
       }
     } catch(e) {
-      toast('Error conectando a Vicohome API', 'error');
-      resDiv.style.display = 'none';
+      resDiv.innerHTML = `<div style="text-align:center;padding:16px;width:100%;">
+        <div style="font-size:28px;margin-bottom:8px;">⚠️</div>
+        <div style="font-weight:600;">No se pudo conectar</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:4px;">Verifica tus credenciales o tu conexión a internet.</div>
+      </div>`;
     }
   } else {
-    // Simulación de respuesta para otras marcas
+    // Simulación para marcas sin backend nativo aún
     setTimeout(() => {
       const mockCams = [
-        { id: `${brand.toLowerCase()}-123`, name: `${brand} Frontal`, type: 'cloud', brand: brand, stream_url: `rtsp://cloud-relay.${brand.toLowerCase()}.com/123`, ip: '192.168.1.55', mac: 'AA:BB:CC:DD:EE:11', battery: 95, is_native_rtsp: true },
-        { id: `${brand.toLowerCase()}-456`, name: `${brand} Trasera`, type: 'cloud', brand: brand, stream_url: `rtsp://cloud-relay.${brand.toLowerCase()}.com/456`, ip: '192.168.1.56', mac: 'AA:BB:CC:DD:EE:22', battery: 40, is_native_rtsp: false }
+        { id: `${brand.toLowerCase()}-01`, name: `${brand} Frontal`, type: 'cloud', brand, stream_url: `rtsp://stream.local/01`, ip: '192.168.1.100', mac: '', battery: 90, is_native_rtsp: true },
+        { id: `${brand.toLowerCase()}-02`, name: `${brand} Trasero`, type: 'cloud', brand, stream_url: `rtsp://stream.local/02`, ip: '192.168.1.101', mac: '', battery: 55, is_native_rtsp: false },
       ];
-      
-      resDiv.innerHTML = mockCams.map((c, i) => `
-        <div class="glass" style="padding:12px;display:flex;align-items:center;justify-content:space-between">
-          <div>
-            <div style="font-weight:600;font-size:14px">${c.name}</div>
-            <div style="font-size:11px;color:var(--text3)">ID: ${c.id}</div>
-          </div>
-          <button class="btn-primary" style="padding:6px 12px;font-size:12px" onclick='importDiscovered(${JSON.stringify(c)})'>Agregar</button>
-        </div>
-      `).join('');
-      toast('✅ Sesión iniciada con éxito en ' + brand, 'success');
-    }, 1500);
+      showCloudResults(brand, mockCams, plugin.icon);
+      toast(`✅ ${mockCams.length} cámaras encontradas en ${plugin.name}`, 'success');
+    }, 1800);
   }
 }
+
+function showCloudResults(brand, cams, icon) {
+  const resDiv = document.getElementById('vico-results');
+  resDiv.style.display = 'flex';
+  resDiv.style.flexDirection = 'column';
+  resDiv.innerHTML = `<div style="font-size:12px;color:var(--text3);margin-bottom:8px;">✅ ${cams.length} cámara(s) encontrada(s) en tu cuenta ${brand}</div>` +
+    cams.map(c => `
+    <div class="glass" style="padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:26px;">${icon}</span>
+        <div>
+          <div style="font-weight:600;font-size:14px;">${c.name}</div>
+          <div style="font-size:11px;color:var(--text3);">${c.ip || 'Vía nube'} ${c.battery ? '· 🔋' + c.battery + '%' : ''}</div>
+        </div>
+      </div>
+      <button class="btn-primary" style="white-space:nowrap;padding:8px 14px;font-size:12px;" onclick='importDiscovered(${JSON.stringify({
+        id: c.id, name: c.name, type: "cloud", brand: brand,
+        url: c.stream_url, stream_url: c.stream_url,
+        ip: c.ip, mac: c.mac, battery: c.battery, is_native_rtsp: c.is_native_rtsp
+      })})'>+ Agregar</button>
+    </div>`).join('');
+}
+
 
 function removeCamera(i) {
   const name = cameras[i].name;
