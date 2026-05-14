@@ -1,4 +1,6 @@
 #!/bin/bash
-trap "pkill -f scanner-agent; exit" SIGINT SIGTERM
-./scanner-agent &
-./scryvex-server -data ./data -port 1994
+# Scryvex Hub — Script unificado para LaunchDaemon
+cd "$(dirname "$0")/.."
+ARCH=$(uname -m | sed 's/arm64/arm64/;s/x86_64/amd64/')
+./scanner-agent/scryvex-scanner-$ARCH >> ./logs/scanner.log 2>&1 &
+./build/scryvex-server --data ./data --port 1994 --ui ./build/ui

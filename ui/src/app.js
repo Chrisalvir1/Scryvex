@@ -13,8 +13,8 @@ function lsRemove(key) {
 }
 
 // ── Auth State ────────────────────────────────────────────────
-let authToken = lsGet('cb_token', '');
-let authUser = JSON.parse(lsGet('cb_user', 'null'));
+let authToken = lsGet('scryvex_token', '');
+let authUser = JSON.parse(lsGet('scryvex_user', 'null'));
 
 function getHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
@@ -142,14 +142,14 @@ async function fetchCameras() {
     if (Array.isArray(backendCams) && backendCams.length > 0) {
       cameras = backendCams.map(normalizeCameraClient);
       // Also sync to localStorage as backup
-      lsSet('cb_cameras', JSON.stringify(cameras));
+      lsSet('scryvex_cameras', JSON.stringify(cameras));
     } else {
       // Backend empty - check localStorage as fallback
-      const local = JSON.parse(lsGet('cb_cameras') || '[]');
+      const local = JSON.parse(lsGet('scryvex_cameras') || '[]');
       cameras = local.map(normalizeCameraClient);
     }
   } catch {
-    cameras = JSON.parse(lsGet('cb_cameras') || '[]').map(normalizeCameraClient);
+    cameras = JSON.parse(lsGet('scryvex_cameras') || '[]').map(normalizeCameraClient);
   }
   renderCameras();
 }
@@ -375,7 +375,7 @@ function upsertCameraLocal(cam) {
   const idx = cameras.findIndex(c => c.id === cam.id);
   if (idx >= 0) cameras[idx] = cam;
   else cameras.push(cam);
-  lsSet('cb_cameras', JSON.stringify(cameras));
+  lsSet('scryvex_cameras', JSON.stringify(cameras));
   renderCameras();
 }
 
@@ -507,7 +507,7 @@ function selectBrandPlugin(brand, el) {
   const fieldsEl = document.getElementById('brand-fields');
   fieldsEl.innerHTML = plugin.fields.map(f => {
     // Intentar recuperar el valor guardado para este campo específico de esta marca
-    const savedVal = lsGet(`cb_cloud_${brand}_${f.id}`) || '';
+    const savedVal = lsGet(`scryvex_cloud_${brand}_${f.id}`) || '';
     
     if (f.type === 'select') {
       return `<div>
@@ -534,7 +534,7 @@ function selectBrandPlugin(brand, el) {
   document.getElementById('vico-results').innerHTML = '';
   
   setTimeout(() => {
-    const firstEmpty = plugin.fields.find(f => !lsGet(`cb_cloud_${brand}_${f.id}`));
+    const firstEmpty = plugin.fields.find(f => !lsGet(`scryvex_cloud_${brand}_${f.id}`));
     if (firstEmpty) document.getElementById(firstEmpty.id)?.focus();
   }, 100);
 }
@@ -560,13 +560,13 @@ async function fetchCloudCameras() {
   // Guardar dinámicamente TODOS los campos de esta marca para persistencia total
   plugin.fields.forEach(f => {
     const val = document.getElementById(f.id)?.value?.trim();
-    if (val) lsSet(`cb_cloud_${brand}_${f.id}`, val);
+    if (val) lsSet(`scryvex_cloud_${brand}_${f.id}`, val);
   });
 
   const user = (document.getElementById('cloud-user') || document.getElementById('cloud-project'))?.value?.trim()
-    || lsGet(`cb_cloud_${brand}_cloud-user`) || lsGet(`cb_cloud_${brand}_cloud-project`) || '';
+    || lsGet(`scryvex_cloud_${brand}_cloud-user`) || lsGet(`scryvex_cloud_${brand}_cloud-project`) || '';
   const pass = document.getElementById('cloud-pass')?.value?.trim()
-    || lsGet(`cb_cloud_${brand}_cloud-pass`) || '';
+    || lsGet(`scryvex_cloud_${brand}_cloud-pass`) || '';
 
   const resDiv = document.getElementById('vico-results');
   resDiv.style.display = 'flex';
@@ -618,7 +618,7 @@ async function fetchCloudCameras() {
       
       if (data.ok && data.token) {
         // Guardar el token automáticamente para el Bridge
-        lsSet('cb_ring_token', data.token);
+        lsSet('scryvex_ring_token', data.token);
         if (document.getElementById('cfg-ring-token')) document.getElementById('cfg-ring-token').value = data.token;
         
         if (data.cameras && data.cameras.length > 0) {
@@ -750,7 +750,7 @@ function removeCamera(i) {
   // Delete from backend
   fetch(API + '/api/cameras/' + encodeURIComponent(cam.id), { method: 'DELETE' })
     .catch(() => { }); // Silent fail - local state already updated
-  lsSet('cb_cameras', JSON.stringify(cameras));
+  lsSet('scryvex_cameras', JSON.stringify(cameras));
   renderCameras();
   toast('Cámara "' + name + '" eliminada', 'success');
 }
@@ -1077,10 +1077,10 @@ function saveCamSettings() {
   c.ai = document.getElementById('set-cam-ai').classList.contains('active');
   c.detect_person = document.getElementById('ai-person').checked;
   c.detect_vehicle = document.getElementById('ai-vehicle').checked;
-  lsSet('cb_cameras', JSON.stringify(cameras));
+  lsSet('scryvex_cameras', JSON.stringify(cameras));
   postCamera(c).then(r => r.json()).then(data => {
     if (data.camera) cameras[editIndex] = normalizeCameraClient(data.camera);
-    lsSet('cb_cameras', JSON.stringify(cameras));
+    lsSet('scryvex_cameras', JSON.stringify(cameras));
     renderCameras();
   }).catch(() => {});
   renderCameras();
@@ -1110,7 +1110,7 @@ function saveSettings() {
       gpu: document.getElementById('cfg-gpu').value
     }
   };
-  lsSet('cb_config', JSON.stringify(cfg));
+  lsSet('scryvex_config', JSON.stringify(cfg));
   toast('✅ Configuración guardada (reinicia Docker para aplicar)', 'success');
 }
 
@@ -1248,8 +1248,8 @@ async function doLogin() {
 
     authToken = data.token;
     authUser = data.user;
-    lsSet('cb_token', authToken);
-    lsSet('cb_user', JSON.stringify(authUser));
+    lsSet('scryvex_token', authToken);
+    lsSet('scryvex_user', JSON.stringify(authUser));
 
     // Ocultar login y mostrar app
     document.getElementById('login-screen').style.display = 'none';
@@ -1306,8 +1306,8 @@ async function doReset() {
 function logout() {
   authToken = '';
   authUser = null;
-  lsRemove('cb_token');
-  lsRemove('cb_user');
+  lsRemove('scryvex_token');
+  lsRemove('scryvex_user');
   location.reload();
 }
 
@@ -1495,8 +1495,8 @@ async function updateProfile() {
 }
 
 function logout() {
-  lsRemove('cb_token');
-  lsRemove('cb_user');
+  lsRemove('scryvex_token');
+  lsRemove('scryvex_user');
   location.reload();
 }
 
@@ -1504,9 +1504,9 @@ function logout() {
 // ── Ring Bridge Logic ──────────────────────────────────────────
 async function generateRingToken() {
   const brand = 'Ring';
-  const email = lsGet(`cb_cloud_${brand}_cloud-user`);
-  const pass = lsGet(`cb_cloud_${brand}_cloud-pass`);
-  const code = lsGet(`cb_cloud_${brand}_cloud-2fa`);
+  const email = lsGet(`scryvex_cloud_${brand}_cloud-user`);
+  const pass = lsGet(`scryvex_cloud_${brand}_cloud-pass`);
+  const code = lsGet(`scryvex_cloud_${brand}_cloud-2fa`);
 
   if (!email || !pass) {
     toast('Primero ingresa tus credenciales en el modal de Agregar Cámara -> Ring', 'error');
