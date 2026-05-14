@@ -1,110 +1,217 @@
-/* App Layout Redesign */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: 25px;
-  height: calc(100vh - 150px);
+/* Scryvex v2.0 - Core Layout System */
+:root {
+  --primary: #7000ff;
+  --primary-hover: #8a2be2;
+  --bg-dark: #050508;
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --text-dim: rgba(255, 255, 255, 0.5);
 }
 
-.main-card {
-  padding: 30px;
+.app-root {
+  min-height: 100vh;
+  background: var(--bg-dark);
+  color: #fff;
+  overflow: hidden;
+  position: relative;
+}
+
+.app-container {
+  display: flex;
+  height: 100vh;
+  position: relative;
+  z-index: 10;
+}
+
+/* Sidebar Fix */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  height: calc(100vh - 40px);
+  margin: 20px;
+  border-radius: 24px;
   display: flex;
   flex-direction: column;
+  padding: 30px 20px;
 }
 
-.side-cards {
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 50px;
+  padding-left: 10px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 20px;
+  box-shadow: 0 0 20px rgba(112, 0, 255, 0.4);
+}
+
+.logo-text {
+  font-weight: 900;
+  font-size: 22px;
+  letter-spacing: 2px;
+}
+
+.nav-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+
+.nav-links li {
+  padding: 15px 20px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+.nav-links li:hover, .nav-links li.active {
+  background: rgba(255, 255, 255, 0.05);
+  opacity: 1;
+  transform: translateX(5px);
+}
+
+.nav-links li.active {
+  border-left: 3px solid var(--primary);
+  background: rgba(112, 0, 255, 0.1);
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  padding: 20px 20px 20px 0;
+  overflow: hidden;
 }
 
-.card-header {
+.header-nav {
+  padding: 25px 40px;
+  border-radius: 24px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   margin-bottom: 20px;
 }
 
-.header-titles h3 {
+.header-left h1 {
   margin: 0;
-  font-size: 20px;
+  font-size: 28px;
+  font-weight: 800;
 }
 
-.card-subtitle {
+.subtitle {
   margin: 5px 0 0;
-  font-size: 13px;
-  opacity: 0.5;
+  font-size: 14px;
+  color: var(--text-dim);
 }
 
-/* Quick Actions */
-.action-grid-vertical {
+.content-area {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+
+/* Dashboard Layout */
+.dashboard-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.main-content-card {
+  padding: 30px;
+  border-radius: 24px;
+  min-height: 500px;
+}
+
+.side-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.side-card {
+  padding: 25px;
+  border-radius: 24px;
+}
+
+/* Progress Bars */
+.stat-group {
+  margin-bottom: 20px;
+}
+
+.stat-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar .fill {
+  height: 100%;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  transition: width 0.5s ease;
+}
+
+/* Action Buttons */
+.action-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
 .action-btn-wide {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
   color: #fff;
-  padding: 15px;
-  border-radius: 14px;
+  padding: 16px 20px;
+  border-radius: 16px;
   text-align: left;
   display: flex;
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-weight: 500;
+  transition: all 0.3s ease;
+  font-weight: 600;
 }
 
 .action-btn-wide:hover {
   background: rgba(112, 0, 255, 0.15);
   border-color: rgba(112, 0, 255, 0.3);
-  transform: translateX(5px);
+  transform: scale(1.02);
 }
 
 .action-btn-wide .icon {
-  font-size: 18px;
-}
-
-/* Utils */
-.btn-mini-delete {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 14px;
-  opacity: 0.3;
-  transition: opacity 0.2s;
-}
-
-.btn-mini-delete:hover {
-  opacity: 1;
-}
-
-.live-dot-container {
+  background: rgba(255, 255, 255, 0.05);
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.5);
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 800;
-  color: #00ff88;
-}
-
-.live-dot {
-  width: 6px;
-  height: 6px;
-  background: #00ff88;
-  border-radius: 50%;
-  box-shadow: 0 0 10px #00ff88;
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { opacity: 1; }
-  50% { opacity: 0.3; }
-  100% { opacity: 1; }
+  justify-content: center;
+  border-radius: 8px;
 }

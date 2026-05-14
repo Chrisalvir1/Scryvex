@@ -92,8 +92,8 @@ function App() {
   }
 
   const renderDashboard = () => (
-    <section className="dashboard-grid">
-      <div className="glass main-card hero">
+    <div className="dashboard-layout">
+      <div className="glass main-content-card">
         <div className="card-header">
           <div className="header-titles">
             <h3>Live Monitoring</h3>
@@ -133,8 +133,8 @@ function App() {
         )}
       </div>
       
-      <div className="side-cards">
-        <div className="glass card stats">
+      <div className="side-panel">
+        <div className="glass side-card stats">
           <h3>System Health</h3>
           <div className="stat-group">
             <div className="stat-label"><span>CPU Usage</span><span>{Math.round(systemInfo.cpu)}%</span></div>
@@ -146,9 +146,9 @@ function App() {
           </div>
         </div>
 
-        <div className="glass card actions">
+        <div className="glass side-card actions">
           <h3>Quick Actions</h3>
-          <div className="action-grid-vertical">
+          <div className="action-list">
             <button className="action-btn-wide" onClick={() => setShowAddModal(true)}>
               <span className="icon">➕</span> Add New Device
             </button>
@@ -158,11 +158,11 @@ function App() {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   )
 
-  const renderCameras = () => (
-    <section className="view-container">
+  const renderCamerasView = () => (
+    <div className="view-container">
       <div className="view-header">
         <h2>Camera Management</h2>
         <button className="btn-primary" onClick={() => setShowAddModal(true)}>+ Add Camera</button>
@@ -195,51 +195,58 @@ function App() {
           </tbody>
         </table>
       </div>
-    </section>
+    </div>
   )
 
   return (
-    <div className="container">
+    <div className="app-root">
       <div className="liquid-bg">
         <div className="blob"></div>
         <div className="blob blob-2"></div>
       </div>
 
-      <nav className="glass sidebar">
-        <div className="logo-area">
-          <div className="logo-icon">S</div>
-          <div className="logo-text">SCRYVEX</div>
-        </div>
-        <ul className="nav-links">
-          <li className={currentView === 'dashboard' ? 'active' : ''} onClick={() => setCurrentView('dashboard')}>Dashboard</li>
-          <li className={currentView === 'cameras' ? 'active' : ''} onClick={() => setCurrentView('cameras')}>Cameras</li>
-          <li onClick={() => alert('Events coming in next phase')}>Events</li>
-          <li onClick={() => alert('Settings coming in next phase')}>Settings</li>
-        </ul>
-      </nav>
-
-      <main className="dashboard-content">
-        <header className="glass top-nav">
-          <div className="header-left">
-            <h1>{currentView === 'dashboard' ? 'Overview' : 'Cameras'}</h1>
-            <p className="subtitle">Scryvex v2.0 • Pro Surveillance</p>
+      <div className="app-container">
+        <aside className="glass sidebar">
+          <div className="logo-area">
+            <div className="logo-icon">S</div>
+            <div className="logo-text">SCRYVEX</div>
           </div>
-          <div className="system-status">
-            {status ? (
-              <div className="status-indicator online">
-                <span className="pulse"></span>
-                CORE ONLINE
-              </div>
-            ) : (
-              <div className="status-indicator offline">
-                OFFLINE
-              </div>
-            )}
+          <ul className="nav-links">
+            <li className={currentView === 'dashboard' ? 'active' : ''} onClick={() => setCurrentView('dashboard')}>Dashboard</li>
+            <li className={currentView === 'cameras' ? 'active' : ''} onClick={() => setCurrentView('cameras')}>Cameras</li>
+            <li onClick={() => alert('Coming soon...')}>Events</li>
+            <li onClick={() => alert('Coming soon...')}>Settings</li>
+          </ul>
+          <div className="sidebar-footer">
+            <div className="version-tag">v2.0.0 PRO</div>
           </div>
-        </header>
+        </aside>
 
-        {currentView === 'dashboard' ? renderDashboard() : renderCameras()}
-      </main>
+        <main className="main-content">
+          <header className="glass header-nav">
+            <div className="header-left">
+              <h1>{currentView === 'dashboard' ? 'Overview' : 'Cameras'}</h1>
+              <p className="subtitle">Scryvex v2.0 • Pro Surveillance Hub</p>
+            </div>
+            <div className="system-status">
+              {status ? (
+                <div className="status-indicator online">
+                  <span className="pulse"></span>
+                  CORE ONLINE
+                </div>
+              ) : (
+                <div className="status-indicator offline">
+                  OFFLINE
+                </div>
+              )}
+            </div>
+          </header>
+
+          <div className="content-area">
+            {currentView === 'dashboard' ? renderDashboard() : renderCamerasView()}
+          </div>
+        </main>
+      </div>
 
       {/* MODAL: ADD CAMERA */}
       {showAddModal && (
