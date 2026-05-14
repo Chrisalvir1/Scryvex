@@ -1,0 +1,6 @@
+21:18:58.136 INF go2rtc platform=darwin/arm64 revision=b5948cf version=1.9.14
+21:18:58.136 INF config path=/Users/chrisalvir/Desktop/Scryvex/data/go2rtc_stable.yaml
+21:18:58.139 INF [api] listen addr=:1985
+21:18:58.139 INF [rtsp] listen addr=:8556
+21:18:58.140 INF [webrtc] listen tcp addr=[::]:8557
+21:24:43.000 WRN github.com/AlexxIT/go2rtc/internal/streams/producer.go:170 > error="read tcp 192.168.110.154:49608->192.168.110.153:8554: i/o timeout" url=rtsp://861:108@192.168.110.153:8554/ch1

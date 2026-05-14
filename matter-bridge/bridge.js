@@ -26,8 +26,9 @@ const args = Object.fromEntries(
 const MATTER_PORT  = parseInt(args.port     || process.env.MATTER_PORT  || "5580");
 const DATA_DIR     = args.dataDir            || process.env.MATTER_DATA  || "./data/matter";
 const API_URL      = args.apiUrl             || process.env.API_URL      || "http://localhost:8080";
-const VID          = parseInt(process.env.MATTER_VID || "65521");  // 0xFFF1 = test vendor
-const PID          = parseInt(process.env.MATTER_PID || "32768");  // 0x8000
+const VID          = parseInt(process.env.MATTER_VID || "4447");   // 0x1102 = Aqara / Lumi United
+const PID          = parseInt(process.env.MATTER_PID || "1");      // 0x0001
+const CD_BLOB      = process.env.MATTER_CD_BLOB || "STANDARD_CERTIFIED_DECLARATION";
 
 fs.mkdirSync(path.join(DATA_DIR, "certs"),   { recursive: true });
 fs.mkdirSync(path.join(DATA_DIR, "fabrics"), { recursive: true });

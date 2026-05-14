@@ -1,0 +1,152 @@
+2026/05/13 23:21:22 main.go:40: Scryvex v0.1.1 (build dev)
+2026/05/13 23:21:22 plugin.go:31: 🚀 [PluginManager] Iniciando plugin: ring (/Users/chrisalvir/Desktop/Scryvex/plugins/ring/index.js)
+2026/05/13 23:21:22 main.go:103: 🎨 Sirviendo UI desde: /Users/chrisalvir/Desktop/Scryvex/ui/src
+2026/05/13 23:21:22 main.go:422: 🚀 Iniciando Matter Bridge...
+2026/05/13 23:21:22 main.go:123: ✅ Scryvex v0.1.1 escuchando en http://localhost:1995
+[matter] ✅ CamBridge Matter Bridge iniciado
+[matter] VID=0xFFF1 PID=0x8000
+node:events:486
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use 0.0.0.0:7878
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at node:net:2274:7
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:2044:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '0.0.0.0',
+  port: 7878
+}
+
+Node.js v25.8.1
+2026/05/13 23:21:22 plugin.go:64: 🔌 [ring] [RingPlugin] Iniciando plugin de Ring...
+2026/05/13 23:21:22 plugin.go:64: 🔌 [ring] [RingPlugin] No hay sesión activa. Esperando configuración de usuario.
+(node:28025) [DEP0060] DeprecationWarning: The `util._extend` API is deprecated. Please use Object.assign() instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+2026/05/13 23:21:24 main.go:387: GET /api/status 608.75µs
+2026/05/13 23:21:24 main.go:387: GET /api/cameras 408.75µs
+2026/05/13 23:21:27 plugin.go:69: ⚠️ [PluginManager] Plugin ring detenido. ExitError: <nil>
+2026/05/13 23:21:39 main.go:387: GET /api/status 388.625µs
+2026/05/13 23:21:39 main.go:387: GET /api/cameras 495.541µs
+2026/05/13 23:21:54 main.go:387: GET /api/status 131.625µs
+2026/05/13 23:21:54 main.go:387: GET /api/cameras 740.833µs
+2026/05/13 23:22:09 main.go:387: GET /api/status 30.5µs
+2026/05/13 23:22:09 main.go:387: GET /api/cameras 542.708µs
+2026/05/13 23:22:24 main.go:387: GET /api/status 57.917µs
+2026/05/13 23:22:24 main.go:387: GET /api/cameras 308.042µs
+2026/05/13 23:22:39 main.go:387: GET /api/status 16.291µs
+2026/05/13 23:22:39 main.go:387: GET /api/cameras 537µs
+2026/05/13 23:22:54 main.go:387: GET /api/status 14.208µs
+2026/05/13 23:22:54 main.go:387: GET /api/cameras 422.167µs
+2026/05/13 23:23:09 main.go:387: GET /api/status 31.917µs
+2026/05/13 23:23:09 main.go:387: GET /api/cameras 556.292µs
+2026/05/13 23:23:24 main.go:387: GET /api/status 59.542µs
+2026/05/13 23:23:24 main.go:387: GET /api/cameras 534.083µs
+2026/05/13 23:23:39 main.go:387: GET /api/status 85.666µs
+2026/05/13 23:23:39 main.go:387: GET /api/cameras 534.709µs
+2026/05/13 23:23:54 main.go:387: GET /api/status 106.666µs
+2026/05/13 23:23:54 main.go:387: GET /api/cameras 528.083µs
+2026/05/13 23:24:09 main.go:387: GET /api/status 53.042µs
+2026/05/13 23:24:09 main.go:387: GET /api/cameras 270.667µs
+2026/05/13 23:24:24 main.go:387: GET /api/status 31.292µs
+2026/05/13 23:24:24 main.go:387: GET /api/cameras 571.75µs
+2026/05/13 23:24:39 main.go:387: GET /api/status 48.375µs
+2026/05/13 23:24:39 main.go:387: GET /api/cameras 588.959µs
+2026/05/13 23:24:54 main.go:387: GET /api/status 34.625µs
+2026/05/13 23:24:54 main.go:387: GET /api/cameras 295.625µs
+2026/05/13 23:25:09 main.go:387: GET /api/status 34µs
+2026/05/13 23:25:09 main.go:387: GET /api/cameras 580.166µs
+2026/05/13 23:25:24 main.go:387: GET /api/status 44.542µs
+2026/05/13 23:25:24 main.go:387: GET /api/cameras 672.875µs
+2026/05/13 23:25:39 main.go:387: GET /api/status 87.958µs
+2026/05/13 23:25:39 main.go:387: GET /api/cameras 572.417µs
+2026/05/13 23:25:54 main.go:387: GET /api/status 41.792µs
+2026/05/13 23:25:54 main.go:387: GET /api/cameras 395.417µs
+2026/05/13 23:26:09 main.go:387: GET /api/status 95.625µs
+2026/05/13 23:26:09 main.go:387: GET /api/cameras 787.5µs
+2026/05/13 23:26:24 main.go:387: GET /api/status 68.75µs
+2026/05/13 23:26:24 main.go:387: GET /api/cameras 331.667µs
+2026/05/13 23:26:39 main.go:387: GET /api/status 37.375µs
+2026/05/13 23:26:39 main.go:387: GET /api/cameras 552.542µs
+2026/05/13 23:26:54 main.go:387: GET /api/status 39.625µs
+2026/05/13 23:26:54 main.go:387: GET /api/cameras 430.167µs
+2026/05/13 23:27:09 main.go:387: GET /api/status 63µs
+2026/05/13 23:27:09 main.go:387: GET /api/cameras 632.291µs
+2026/05/13 23:27:24 main.go:387: GET /api/status 140.333µs
+2026/05/13 23:27:24 main.go:387: GET /api/cameras 494.667µs
+2026/05/13 23:27:39 main.go:387: GET /api/status 67.667µs
+2026/05/13 23:27:39 main.go:387: GET /api/cameras 618.167µs
+2026/05/13 23:27:54 main.go:387: GET /api/status 145.041µs
+2026/05/13 23:27:54 main.go:387: GET /api/cameras 818.667µs
+2026/05/13 23:28:09 main.go:387: GET /api/status 57.458µs
+2026/05/13 23:28:09 main.go:387: GET /api/cameras 564.208µs
+2026/05/13 23:28:24 main.go:387: GET /api/status 20.25µs
+2026/05/13 23:28:24 main.go:387: GET /api/cameras 287.417µs
+2026/05/13 23:28:39 main.go:387: GET /api/status 17.833µs
+2026/05/13 23:28:39 main.go:387: GET /api/cameras 369.333µs
+2026/05/13 23:28:54 main.go:387: GET /api/status 116µs
+2026/05/13 23:28:54 main.go:387: GET /api/cameras 587.792µs
+2026/05/13 23:29:09 main.go:387: GET /api/status 103.542µs
+2026/05/13 23:29:09 main.go:387: GET /api/cameras 304.458µs
+2026/05/13 23:29:24 main.go:387: GET /api/status 46.833µs
+2026/05/13 23:29:24 main.go:387: GET /api/cameras 540.5µs
+2026/05/13 23:29:39 main.go:387: GET /api/status 42.916µs
+2026/05/13 23:29:39 main.go:387: GET /api/cameras 536µs
+2026/05/13 23:29:54 main.go:387: GET /api/status 66.041µs
+2026/05/13 23:29:54 main.go:387: GET /api/cameras 466.583µs
+2026/05/13 23:30:09 main.go:387: GET /api/status 31.334µs
+2026/05/13 23:30:09 main.go:387: GET /api/cameras 615.291µs
+2026/05/13 23:30:24 main.go:387: GET /api/status 45.708µs
+2026/05/13 23:30:24 main.go:387: GET /api/cameras 594.083µs
+2026/05/13 23:30:39 main.go:387: GET /api/status 71.083µs
+2026/05/13 23:30:39 main.go:387: GET /api/cameras 434.125µs
+2026/05/13 23:30:54 main.go:387: GET /api/status 107.084µs
+2026/05/13 23:30:54 main.go:387: GET /api/cameras 536.584µs
+2026/05/13 23:31:09 main.go:387: GET /api/status 36.167µs
+2026/05/13 23:31:09 main.go:387: GET /api/cameras 533µs
+2026/05/13 23:31:24 main.go:387: GET /api/status 54.042µs
+2026/05/13 23:31:24 main.go:387: GET /api/cameras 460.875µs
+2026/05/13 23:31:39 main.go:387: GET /api/status 31.208µs
+2026/05/13 23:31:39 main.go:387: GET /api/cameras 596.667µs
+2026/05/13 23:31:54 main.go:387: GET /api/status 93.917µs
+2026/05/13 23:31:54 main.go:387: GET /api/cameras 724.375µs
+2026/05/13 23:32:09 main.go:387: GET /api/status 195.459µs
+2026/05/13 23:32:09 main.go:387: GET /api/cameras 563.584µs
+2026/05/13 23:32:24 main.go:387: GET /api/status 42.417µs
+2026/05/13 23:32:24 main.go:387: GET /api/cameras 273.25µs
+2026/05/13 23:32:39 main.go:387: GET /api/status 107.833µs
+2026/05/13 23:32:39 main.go:387: GET /api/cameras 754.291µs
+2026/05/13 23:32:54 main.go:387: GET /api/status 44.292µs
+2026/05/13 23:32:54 main.go:387: GET /api/cameras 836.834µs
+2026/05/13 23:33:09 main.go:387: GET /api/status 170.041µs
+2026/05/13 23:33:09 main.go:387: GET /api/cameras 693.667µs
+2026/05/13 23:33:24 main.go:387: GET /api/status 144.709µs
+2026/05/13 23:33:24 main.go:387: GET /api/cameras 588.125µs
+2026/05/13 23:33:39 main.go:387: GET /api/status 77.792µs
+2026/05/13 23:33:39 main.go:387: GET /api/cameras 635.709µs
+2026/05/13 23:33:54 main.go:387: GET /api/status 51.959µs
+2026/05/13 23:33:54 main.go:387: GET /api/cameras 520.792µs
+2026/05/13 23:34:09 main.go:387: GET /api/status 149.708µs
+2026/05/13 23:34:09 main.go:387: GET /api/cameras 487.583µs
+2026/05/13 23:34:24 main.go:387: GET /api/status 143.083µs
+2026/05/13 23:34:24 main.go:387: GET /api/cameras 603.375µs
+2026/05/13 23:34:39 main.go:387: GET /api/status 391.083µs
+2026/05/13 23:34:39 main.go:387: GET /api/cameras 682.625µs
+2026/05/13 23:34:54 main.go:387: GET /api/status 138.083µs
+2026/05/13 23:34:54 main.go:387: GET /api/cameras 1.045292ms
+2026/05/13 23:35:09 main.go:387: GET /api/status 738.167µs
+2026/05/13 23:35:09 main.go:387: GET /api/cameras 696.583µs
+2026/05/13 23:35:24 main.go:387: GET /api/status 69.333µs
+2026/05/13 23:35:24 main.go:387: GET /api/cameras 429.334µs
+2026/05/13 23:35:39 main.go:387: GET /api/status 121.709µs
+2026/05/13 23:35:39 main.go:387: GET /api/cameras 295.75µs
+2026/05/13 23:35:54 main.go:387: GET /api/status 1.050167ms
+2026/05/13 23:35:54 main.go:387: GET /api/cameras 1.301458ms
+2026/05/13 23:36:09 main.go:387: GET /api/status 595.208µs
+2026/05/13 23:36:09 main.go:387: GET /api/cameras 1.129167ms

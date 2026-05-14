@@ -3,12 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CamBridge — Camera Matter Bridge</title>
-  <meta name="description" content="CamBridge: agrega cualquier cámara a HomeKit, Google Home y Alexa via Matter. UI moderna con Liquid Glass." />
+  <title>Scryvex — Camera Matter Bridge</title>
+  <meta name="description" content="Scryvex: agrega cualquier cámara a HomeKit, Google Home y Alexa via Matter. UI moderna con Liquid Glass." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .brand-card {
+      padding: 12px 4px 8px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(255,255,255,0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: rgba(255,255,255,0.03);
+    }
+    .brand-card:hover { border-color: rgba(102,126,234,0.6); background: rgba(102,126,234,0.1); transform: translateY(-2px); }
+    .brand-card.selected { border-color: #667eea; background: rgba(102,126,234,0.2); }
+    .brand-icon { width: 36px; height: 36px; margin: 0 auto 6px; display: block; object-fit: contain; border-radius: 8px; }
+    .brand-label { font-size: 10px; color: var(--text2); font-weight: 600; line-height: 1.2; }
+  </style>
 </head>
 <body>
 
@@ -32,8 +47,8 @@
         </defs>
       </svg>
     </div>
-    <span class="logo-text">CamBridge</span>
-    <span class="logo-version">v0.2</span>
+    <span class="logo-text">Scryvex</span>
+    <span class="logo-version">v0.1.1</span>
   </div>
 
   <nav class="sidebar-nav">
@@ -115,7 +130,7 @@
       <div class="stat-card glass">
         <div class="stat-icon orange"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
         <div class="stat-info">
-          <span class="stat-val" id="stat-ver">0.1.0</span>
+          <span class="stat-val" id="stat-ver">0.1.1</span>
           <span class="stat-label">Versión</span>
         </div>
       </div>
@@ -194,7 +209,7 @@
     </div>
     <div class="discover-info glass">
       <h3>¿Cómo funciona?</h3>
-      <p>CamBridge escanea tu red local buscando cámaras ONVIF, dispositivos Tuya/Vicohome y streams RTSP automáticamente.</p>
+      <p>Scryvex escanea tu red local buscando cámaras ONVIF, dispositivos Tuya/Vicohome y streams RTSP automáticamente.</p>
       <div class="protocol-chips">
         <span class="chip">ONVIF</span>
         <span class="chip">RTSP</span>
@@ -271,9 +286,10 @@
           <label>Usuario</label>
           <input class="glass-input" id="cfg-mqtt-user" type="text" placeholder="homeassistant" />
         </div>
-        <div class="form-group">
+        <div class="form-group" style="position:relative">
           <label>Contraseña</label>
-          <input class="glass-input" id="cfg-mqtt-pass" type="password" placeholder="••••••••" />
+          <input class="glass-input" id="cfg-mqtt-pass" type="password" placeholder="••••••••" style="padding-right:35px;" />
+          <span onclick="togglePass('cfg-mqtt-pass')" style="position:absolute;right:10px;top:28px;cursor:pointer;opacity:0.6;font-size:14px;">👁️</span>
         </div>
       </div>
 
@@ -283,9 +299,10 @@
           <label>Client ID</label>
           <input class="glass-input" id="cfg-tuya-id" type="text" placeholder="xxxxxxxxxxxxxxxxx" />
         </div>
-        <div class="form-group">
+        <div class="form-group" style="position:relative">
           <label>Client Secret</label>
-          <input class="glass-input" id="cfg-tuya-secret" type="password" placeholder="••••••••••••••••••••••••" />
+          <input class="glass-input" id="cfg-tuya-secret" type="password" placeholder="••••••••••••••••••••••••" style="padding-right:35px;" />
+          <span onclick="togglePass('cfg-tuya-secret')" style="position:absolute;right:10px;top:28px;cursor:pointer;opacity:0.6;font-size:14px;">👁️</span>
         </div>
         <div class="form-group">
           <label>Región</label>
@@ -297,6 +314,20 @@
           </select>
         </div>
         <a class="link-hint" href="https://iot.tuya.com" target="_blank">→ Obtener credenciales en iot.tuya.com</a>
+      </div>
+
+      <div class="settings-card glass" id="ring-bridge-card">
+        <h3>🔔 Scryvex Ring Bridge</h3>
+        <div class="form-group">
+          <label>Ring Refresh Token</label>
+          <textarea class="glass-input" id="cfg-ring-token" placeholder="Pega aquí tu token de Ring..." style="height:60px; font-family:monospace; font-size:11px;"></textarea>
+        </div>
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <button class="btn-primary" style="flex:1; font-size:12px; padding:8px;" onclick="generateRingToken()">🔑 Generar Token</button>
+          <button class="btn-glass" style="flex:1; font-size:12px; padding:8px;" onclick="testRingBridge()">📡 Probar Puente</button>
+        </div>
+        <div id="ring-bridge-status" style="font-size:11px; color:var(--text3); margin-top:10px; text-align:center;">Estado: Pendiente de configuración</div>
+        <p class="link-hint">Este puente reemplaza a Scrypted para tus cámaras Ring.</p>
       </div>
 
       <div class="settings-card glass">
@@ -358,33 +389,64 @@
       </div>
 
       <div id="form-tuya" style="display:none">
-        <div class="form-group">
-          <label>Marca / Plataforma</label>
-          <select id="cam-cloud-brand" class="glass-input">
-            <option value="Vicohome">Vicohome</option>
-            <option value="Google Nest">Google Nest</option>
-            <option value="Ring">Ring</option>
-            <option value="Tuya">Tuya / SmartLife</option>
-            <option value="Tapo">Tapo</option>
-            <option value="Ezviz">Ezviz</option>
-            <option value="Nooie">Nooie</option>
-            <option value="Wyze">Wyze</option>
-            <option value="Aqara">Aqara</option>
-          </select>
+
+        <div id="brand-picker" style="margin-bottom:16px;">
+          <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Selecciona tu plataforma</div>
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;" id="brand-cards">
+            <div onclick="selectBrandPlugin('Tuya',this)" class="brand-card">
+              <span style="font-size:28px;display:block;margin-bottom:4px;">🏠</span>
+              <div class="brand-label">Tuya</div>
+            </div>
+            <div onclick="selectBrandPlugin('Vicohome',this)" class="brand-card">
+              <span style="font-size:28px;display:block;margin-bottom:4px;">📹</span>
+              <div class="brand-label">Vicohome</div>
+            </div>
+            <div onclick="selectBrandPlugin('Ring',this)" class="brand-card">
+              <span style="font-size:28px;display:block;margin-bottom:4px;">🔔</span>
+              <div class="brand-label">Ring</div>
+            </div>
+            <div onclick="selectBrandPlugin('Tapo',this)" class="brand-card">
+              <span style="font-size:28px;display:block;margin-bottom:4px;">🔗</span>
+              <div class="brand-label">Tapo</div>
+            </div>
+            <div onclick="selectBrandPlugin('Ezviz',this)" class="brand-card">
+              <span style="font-size:28px;display:block;margin-bottom:4px;">🛡️</span>
+              <div class="brand-label">Ezviz</div>
+            </div>
+            <div onclick="selectBrandPlugin('Wyze',this)" class="brand-card">
+              <span style="font-size:28px;display:block;margin-bottom:4px;">👁️</span>
+              <div class="brand-label">Wyze</div>
+            </div>
+            <div onclick="selectBrandPlugin('Google Nest',this)" class="brand-card">
+              <span style="font-size:28px;display:block;margin-bottom:4px;">🌐</span>
+              <div class="brand-label">Nest</div>
+            </div>
+            <div onclick="selectBrandPlugin('Aqara',this)" class="brand-card">
+              <span style="font-size:28px;display:block;margin-bottom:4px;">🌿</span>
+              <div class="brand-label">Aqara</div>
+            </div>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Email / Usuario</label>
-          <input class="glass-input" id="cam-vico-user" type="email" placeholder="" />
+
+        <!-- PASO 2: Formulario dinámico -->
+        <div id="brand-credential-form" style="display:none;">
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:14px; padding:10px 14px; background:rgba(255,255,255,0.04); border-radius:12px;">
+            <span id="brand-plugin-icon" style="font-size:24px;"></span>
+            <div>
+              <div id="brand-plugin-name" style="font-weight:700; font-size:14px;"></div>
+              <div id="brand-plugin-desc" style="font-size:11px; color:var(--text3);"></div>
+            </div>
+            <button onclick="resetBrandPicker()" style="margin-left:auto; background:none; border:none; color:var(--text3); cursor:pointer; font-size:18px;">&#8592; Cambiar</button>
+          </div>
+          <div id="brand-fields" style="display:flex; flex-direction:column; gap:10px;"></div>
+          <button class="btn-primary" onclick="fetchCloudCameras()" style="margin-top:12px; padding:12px; width:100%; background:linear-gradient(135deg,#10b981,#059669);">🔍 Conectar y Buscar Mis Cámaras</button>
+          <div id="brand-login-note" style="font-size:11px; color:var(--text3); text-align:center; margin-top:8px;"></div>
         </div>
-        <div class="form-group">
-          <label>Contraseña</label>
-          <input class="glass-input" id="cam-vico-pass" type="password" placeholder="" />
-        </div>
-        <button class="btn-primary" onclick="fetchCloudCameras()" style="margin-top:8px; padding: 12px; background: linear-gradient(135deg, #10b981, #059669);">
-          Conectar y Buscar Cámaras
-        </button>
+
+        <!-- PASO 3: Resultados -->
         <div id="vico-results" style="display:none; margin-top:12px; flex-direction:column; gap:8px;"></div>
       </div>
+
 
       <div id="form-hls" style="display:none">
         <div class="form-group">
@@ -407,7 +469,7 @@
 <!-- ── TOAST ──────────────────────────────────────────────────── -->
 <div class="toast" id="toast"></div>
 
-<script src="app.js"></script>
+<script src="app.js?v=3"></script>
 </body>
 </html>
 </div><!-- end app-shell -->
