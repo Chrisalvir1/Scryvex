@@ -478,10 +478,13 @@ function openCameraSettings(i) {
         <button class="btn-close" onclick="closeCamSettings()">✕</button>
       </div>
       
-      <!-- Reproductor 16:9 -->
-      <div style="width:100%; aspect-ratio:16/9; background:#000; border-radius:8px; overflow:hidden; position:relative; margin-bottom:16px; display:flex; align-items:center; justify-content:center;">
-        <div id="player-loading" style="color:var(--text2); font-size:13px; position:absolute; z-index:1;">Conectando stream... ⏳</div>
-        <video id="settings-player" autoplay muted playsinline controls style="width:100%; height:100%; object-fit:contain; position:relative; z-index:2; opacity:0; transition:opacity 0.3s;"></video>
+      <!-- Reproductor Real via go2rtc -->
+      <div style="width:100%; aspect-ratio:16/9; background:#000; border-radius:8px; overflow:hidden; position:relative; margin-bottom:16px;">
+        <iframe 
+          src="/go2rtc/webrtc.html?src=${encodeURIComponent(c.url || c.stream_url)}" 
+          style="width:100%; height:100%; border:none;" 
+          allowfullscreen>
+        </iframe>
       </div>
 
       <div class="modal-body" style="max-height: 40vh; overflow-y: auto; padding-right: 8px;">
@@ -517,19 +520,7 @@ function openCameraSettings(i) {
   
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 
-  // Simular la carga del video tras 1 segundo para no bloquear
-  setTimeout(() => {
-    const video = document.getElementById('settings-player');
-    const loading = document.getElementById('player-loading');
-    if (video) {
-      // Para demo visual, cargamos un video de prueba de Apple o un placeholder si no hay URL real
-      video.src = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"; 
-      video.oncanplay = () => {
-        video.style.opacity = '1';
-        if(loading) loading.style.display = 'none';
-      };
-    }
-  }, 1000);
+  // El stream se carga automáticamente vía iframe/go2rtc
 }
 
 function closeCamSettings() {
