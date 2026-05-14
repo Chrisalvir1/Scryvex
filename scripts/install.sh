@@ -4,7 +4,7 @@
 # ║   macOS (Apple Silicon + Intel) · Linux · Raspberry Pi  ║
 # ╚══════════════════════════════════════════════════════════╝
 # Uso:
-#   curl -fsSL https://raw.githubusercontent.com/scryvex/scryvex/main/scripts/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Chrisalvir1/Scryvex/main/scripts/install.sh | bash
 #
 # O con opciones:
 #   curl -fsSL .../install.sh | bash -s -- --dir ~/.scryvex --no-service
@@ -102,8 +102,11 @@ get_version() {
     VERSION="$FORCE_VERSION"
   else
     info "Consultando última versión..."
-    VERSION=$(curl -fsSL "$GITHUB_API" 2>/dev/null | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' || echo "v0.1.0")
-    [ -z "$VERSION" ] && VERSION="v0.1.0"
+    VERSION=$(curl -fsSL "$GITHUB_API" 2>/dev/null \
+      | grep '"tag_name"' \
+      | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/' \
+      || echo "")
+    [ -z "$VERSION" ] && VERSION="v0.1.2"
   fi
   ok "Versión: ${BOLD}${VERSION}${NC}"
 }
@@ -116,33 +119,40 @@ download_binary() {
   mkdir -p "$BIN_DIR" "$DATA_DIR" "$CONFIG_DIR" "$LOG_DIR"
 
   info "Descargando Scryvex para ${PLATFORM_NAME}..."
-  if ! curl -fsSL --progress-bar "$DOWNLOAD_URL" -o "$BIN_DIR/scryvex.tmp"; then
-    warn "No se encontró release para esta versión. Compilando desde fuente..."
+  if curl -fsSL --progress-bar "$DOWNLOAD_URL" -o "$BIN_DIR/scryvex.tmp" 2>/dev/null; then
+    mv "$BIN_DIR/scryvex.tmp" "$BIN_DIR/scryvex"
+    chmod +x "$BIN_DIR/scryvex"
+    ok "Binario instalado en ${BIN_DIR}/scryvex"
+  else
+    rm -f "$BIN_DIR/scryvex.tmp"
+    info "Binario precompilado no disponible — compilando desde fuente..."
     build_from_source
-    return
   fi
-
-  mv "$BIN_DIR/scryvex.tmp" "$BIN_DIR/scryvex"
-  chmod +x "$BIN_DIR/scryvex"
-  ok "Binario instalado en ${BIN_DIR}/scryvex"
 }
 
 # ── Compilar desde fuente (fallback) ─────────────────────────────────────────
 build_from_source() {
   command -v go >/dev/null 2>&1 || die "Go no está instalado. Instálalo desde https://go.dev/dl/ e intenta de nuevo."
-  info "Compilando desde fuente con Go $(go version | awk '{print $3}')..."
+  info "Compilando con Go $(go version | awk '{print $3}')... (esto toma ~30 segundos)"
 
   TMP=$(mktemp -d)
   trap "rm -rf $TMP" EXIT
 
-  git clone --depth=1 "https://github.com/${REPO}.git" "$TMP/scryvex" 2>/dev/null || \
-    { curl -fsSL "https://github.com/${REPO}/archive/main.tar.gz" | tar -xz -C "$TMP"; mv "$TMP"/scryvex-main "$TMP/scryvex"; }
+  # Intentar clonar, si falla descargar tar
+  if ! git clone --depth=1 --quiet "https://github.com/${REPO}.git" "$TMP/scryvex" 2>/dev/null; then
+    curl -fsSL "https://github.com/${REPO}/archive/main.tar.gz" | tar -xz -C "$TMP"
+    mv "$TMP"/Scryvex-main "$TMP/scryvex" 2>/dev/null || mv "$TMP"/scryvex-main "$TMP/scryvex"
+  fi
 
   cd "$TMP/scryvex"
-  go build -ldflags="-s -w -X main.version=${VERSION} -X main.buildDate=$(date -u +%Y%m%d)" \
-    -o "$BIN_DIR/scryvex" ./cmd/server
+  go build \
+    -ldflags="-s -w -X main.version=${VERSION} -X main.buildDate=$(date -u +%Y%m%d)" \
+    -o "$BIN_DIR/scryvex" \
+    ./cmd/server
 
-  ok "Compilado exitosamente"
+  chmod +x "$BIN_DIR/scryvex"
+  ok "Compilado exitosamente desde fuente"
+  cd - > /dev/null
 }
 
 # ── go2rtc (motor de streams) ─────────────────────────────────────────────────
@@ -189,7 +199,6 @@ install_matter_bridge() {
   curl -fsSL "${GITHUB_RAW}/matter-bridge/bridge.js"     -o "$BRIDGE_DIR/bridge.js"
   curl -fsSL "${GITHUB_RAW}/matter-bridge/package.json"  -o "$BRIDGE_DIR/package.json"
 
-  # Verificar Node.js
   if command -v node >/dev/null 2>&1; then
     NODE_VER=$(node --version | tr -d 'v' | cut -d. -f1)
     if [ "$NODE_VER" -ge 18 ]; then
@@ -353,15 +362,12 @@ PLIST
       ;;
 
     linux)
-      # Detectar systemd vs init
       if command -v systemctl >/dev/null 2>&1; then
         SERVICE_FILE=""
-        # Si tiene permisos de sudo, instalar como servicio del sistema
         if [ "$EUID" -eq 0 ]; then
           SERVICE_FILE="/etc/systemd/system/scryvex.service"
           USER_DIRECTIVE="User=$(logname 2>/dev/null || echo $USER)"
         else
-          # Servicio de usuario (sin sudo)
           mkdir -p "$HOME/.config/systemd/user"
           SERVICE_FILE="$HOME/.config/systemd/user/scryvex.service"
           USER_DIRECTIVE=""
@@ -400,19 +406,13 @@ SYSTEMD
   esac
 }
 
-
-# ── Auto-updater (verificar nuevas versiones cada 6h) ────────────────────────
+# ── Auto-updater ──────────────────────────────────────────────────────────────
 install_auto_updater() {
-  # Descargar el script de auto-update
-  curl -fsSL "${GITHUB_RAW}/scripts/auto_update.sh" -o "$BIN_DIR/scryvex-update" 2>/dev/null || {
-    # Fallback: copiar desde la instalación local si ya existe
-    [ -f "$BIN_DIR/../scripts/auto_update.sh" ] && cp "$BIN_DIR/../scripts/auto_update.sh" "$BIN_DIR/scryvex-update"
-  }
+  curl -fsSL "${GITHUB_RAW}/scripts/auto_update.sh" -o "$BIN_DIR/scryvex-update" 2>/dev/null || true
   chmod +x "$BIN_DIR/scryvex-update" 2>/dev/null || true
 
   case "$OS" in
     darwin)
-      # LaunchAgent que corre el updater cada 6 horas
       cat > "$HOME/Library/LaunchAgents/com.scryvex.updater.plist" << UPLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -431,35 +431,26 @@ UPLIST
       launchctl load "$HOME/Library/LaunchAgents/com.scryvex.updater.plist" 2>/dev/null || true
       ok "Auto-updater instalado (verifica nuevas versiones cada 6 horas)"
       ;;
-
     linux)
-      # systemd timer (equivalente a cron, más moderno)
       mkdir -p "$HOME/.config/systemd/user"
       cat > "$HOME/.config/systemd/user/scryvex-updater.service" << SYSDSVC
 [Unit]
 Description=Scryvex Auto-Updater
-After=network-online.target
-
 [Service]
 Type=oneshot
 ExecStart=${BIN_DIR}/scryvex-update
 StandardOutput=append:${LOG_DIR}/updater.log
-StandardError=append:${LOG_DIR}/updater-error.log
 SYSDSVC
-
       cat > "$HOME/.config/systemd/user/scryvex-updater.timer" << SYSDTMR
 [Unit]
 Description=Scryvex Auto-Updater Timer
-
 [Timer]
 OnBootSec=5min
 OnUnitActiveSec=6h
 Persistent=true
-
 [Install]
 WantedBy=timers.target
 SYSDTMR
-
       systemctl --user daemon-reload 2>/dev/null || true
       systemctl --user enable --now scryvex-updater.timer 2>/dev/null || true
       ok "Auto-updater instalado (systemd timer cada 6 horas)"
@@ -513,7 +504,7 @@ print_summary() {
   echo -e "  ${BOLD}Plataforma:${NC}    $PLATFORM_NAME"
   echo ""
   echo -e "  ${BOLD}Para iniciar:${NC}"
-  echo -e "  ${CYN}  scryvex-start${NC}           # iniciar todos los servicios"
+  echo -e "  ${CYN}  $BIN_DIR/scryvex-start${NC}   # iniciar todos los servicios"
   echo -e "  ${CYN}  scryvex --help${NC}           # ver opciones"
   echo ""
   echo -e "  ${BOLD}Configuración:${NC}"
@@ -525,15 +516,6 @@ print_summary() {
     echo -e "  ${GRN}✓${NC} Scryvex se iniciará automáticamente con tu sistema"
     echo -e "  ${GRN}✓${NC} Se actualizará automáticamente en segundo plano (cada 6h)"
     echo ""
-  fi
-
-  # Abrir navegador
-  if $OPEN_BROWSER && [ -f "$PIDS_FILE" ]; then
-    sleep 2
-    case "$OS" in
-      darwin) open "http://localhost:1994" ;;
-      linux)  xdg-open "http://localhost:1994" 2>/dev/null || true ;;
-    esac
   fi
 }
 
@@ -561,7 +543,6 @@ main() {
   echo ""
   print_summary
 
-  # Iniciar Scryvex inmediatamente
   echo -e "  ${YEL}Iniciando Scryvex...${NC}"
   exec "$BIN_DIR/scryvex-start"
 }
