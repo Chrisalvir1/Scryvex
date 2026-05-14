@@ -83,7 +83,9 @@ mkdir -p "$SCRIPT_DIR/build"
 cd "$SCRIPT_DIR"
 sudo -u "$REAL_USER" go build -o build/scryvex-server ./cmd/server/
 chmod +x build/scryvex-server
-ok "scryvex-server compilado"
+mkdir -p "$SCRIPT_DIR/build/ui"
+cp -r "$SCRIPT_DIR/ui/src/"* "$SCRIPT_DIR/build/ui/" 2>/dev/null || true
+ok "scryvex-server compilado y UI preparada"
 
 # ── 6. Instalar dependencias matter-bridge ─────────────────────────
 if [ -f "$SCRIPT_DIR/matter-bridge/package.json" ]; then

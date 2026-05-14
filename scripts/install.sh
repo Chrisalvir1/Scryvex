@@ -123,6 +123,13 @@ download_binary() {
     mv "$BIN_DIR/scryvex.tmp" "$BIN_DIR/scryvex"
     chmod +x "$BIN_DIR/scryvex"
     ok "Binario instalado en ${BIN_DIR}/scryvex"
+    
+    info "Descargando interfaz gráfica..."
+    mkdir -p "$INSTALL_DIR/build/ui"
+    curl -fsSL "${GITHUB_RAW}/ui/src/index.html" -o "$INSTALL_DIR/build/ui/index.html" 2>/dev/null || true
+    curl -fsSL "${GITHUB_RAW}/ui/src/style.css"  -o "$INSTALL_DIR/build/ui/style.css" 2>/dev/null || true
+    curl -fsSL "${GITHUB_RAW}/ui/src/app.js"     -o "$INSTALL_DIR/build/ui/app.js" 2>/dev/null || true
+    ok "Interfaz gráfica lista"
   else
     rm -f "$BIN_DIR/scryvex.tmp"
     info "Binario precompilado no disponible — compilando desde fuente..."
@@ -151,6 +158,10 @@ build_from_source() {
     ./cmd/server
 
   chmod +x "$BIN_DIR/scryvex"
+  
+  mkdir -p "$INSTALL_DIR/build/ui"
+  cp -r "$TMP/scryvex/ui/src/"* "$INSTALL_DIR/build/ui/" 2>/dev/null || true
+  
   ok "Compilado exitosamente desde fuente"
   cd - > /dev/null
 }
