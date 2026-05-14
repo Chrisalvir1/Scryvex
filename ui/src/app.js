@@ -458,7 +458,7 @@ function selectBrandPlugin(brand, el) {
   if (el) el.classList.add('selected');
 
   const iconHTML = plugin.logo.startsWith('http')
-    ? `<img src="${plugin.logo}" style="width:40px;height:40px;object-fit:contain;border-radius:8px;" onerror="this.innerHTML='📦'" alt="${plugin.name}">`
+    ? `<img src="${plugin.logo}" style="width:40px;height:40px;object-fit:contain;border-radius:8px;" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='inline')" alt="${plugin.name}">`
     : `<span style="font-size:32px;">${plugin.logo}</span>`;
 
   document.getElementById('brand-plugin-icon').innerHTML = iconHTML;
@@ -525,16 +525,21 @@ async function fetchCloudCameras() {
     if (val) lsSet(`cb_cloud_${brand}_${f.id}`, val);
   });
 
-  const user = document.getElementById('cloud-user')?.value?.trim();
-  const pass = document.getElementById('cloud-pass')?.value?.trim();
+  const user = (document.getElementById('cloud-user') || document.getElementById('cloud-project'))?.value?.trim()
+    || lsGet(`cb_cloud_${brand}_cloud-user`) || lsGet(`cb_cloud_${brand}_cloud-project`) || '';
+  const pass = document.getElementById('cloud-pass')?.value?.trim()
+    || lsGet(`cb_cloud_${brand}_cloud-pass`) || '';
 
   const resDiv = document.getElementById('vico-results');
   resDiv.style.display = 'flex';
+  const _spinnerIcon = plugin.logo.startsWith('http')
+    ? `<img src="${plugin.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:10px;margin-bottom:8px;" alt="${plugin.name}">`
+    : `<span style="font-size:40px;line-height:1;margin-bottom:8px;display:block;">${plugin.logo}</span>`;
   resDiv.innerHTML = `<div style="text-align:center;padding:20px;width:100%;">
-    <img src="${plugin.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:10px;margin-bottom:8px;" alt="${plugin.name}">
-    <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
+    ${_spinnerIcon}
+    <div class="loader" style="margin: 0 auto 12px;"></div>
     <div style="font-weight:600;margin-bottom:4px;">Conectando con ${plugin.name}...</div>
-    <div style="font-size:12px;color:var(--text3);" id="cloud-status-text">Autenticando con Ring Cloud...</div>
+    <div style="font-size:12px;color:var(--text3);" id="cloud-status-text">Autenticando...</div>
   </div>`;
 
   if (plugin.api === 'tuya' || plugin.api === 'vicohome') {
@@ -654,7 +659,7 @@ function showCloudResults(brand, cams, logo) {
               <div style="font-size:11px;color:var(--text3);">${c.ip || 'Vía nube'}</div>
             </div>
           </div>
-          ${!isPlaceholder ? `<button class="btn-primary" style="padding:8px 14px;font-size:12px;" onclick='importDiscovered(${JSON.stringify(c)})'>+ Agregar</button>` : ''}
+          ${!isPlaceholder ? `<button class="btn-primary" style="padding:8px 14px;font-size:12px;" onclick="importFromBtn(this)" data-cam='${JSON.stringify(c).replace(/'/g, "&#39;")}'>`+ Agregar</button>` : ''}
         </div>
         
         ${isPlaceholder ? `
@@ -826,7 +831,7 @@ async function startScan() {
             <div style="font-family:monospace;font-size:11px;color:var(--text3);opacity:0.7;margin-top:2px">${c.stream_url || ''}</div>
           </div>
           <button class="btn-primary" style="white-space:nowrap;padding:8px 14px;font-size:13px" 
-            onclick='importDiscovered(${JSON.stringify(c)})'>+ Agregar</button>
+            onclick="importFromBtn(this)">+ Agregar</button>
         </div>`;
       };
 
@@ -890,6 +895,17 @@ function importDiscovered(cam) {
     toast('✅ Cámara importada (local): ' + newCam.name, 'success');
   });
 }
+// Safe wrapper — avoids single-quote injection in onclick attributes
+function importFromBtn(btn) {
+  try {
+    const raw = btn.getAttribute('data-cam').replace(/&#39;/g, "'");
+    importDiscovered(JSON.parse(raw));
+  } catch(e) {
+    console.error('importFromBtn parse error', e);
+    toast('Error al importar cámara', 'error');
+  }
+}
+
 
 // ── Matter UI ─────────────────────────────────────────────────
 async function fetchMatterQR(id) {
@@ -1503,7 +1519,6 @@ async function testRingBridge() {
 let activePlugin = null;
 
 function openPluginSettings(id) {
-    console.log('🚀 Abriendo plugin:', id);
     activePlugin = id;
     const config = {
         ring: { name: 'Ring', color: '#007bff', icon: 'R' },
