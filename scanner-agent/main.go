@@ -187,16 +187,28 @@ func tcpPortScan() {
 					conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", ip, p.port), 600*time.Millisecond)
 					if err == nil {
 						conn.Close()
+						
+						// Intentar resolver el nombre de host (Reverse DNS / mDNS local)
+						camName := fmt.Sprintf("Dispositivo (%s:%d)", ip, p.port)
+						hostnames, lookupErr := net.LookupAddr(ip)
+						if lookupErr == nil && len(hostnames) > 0 {
+							cleanName := strings.TrimSuffix(hostnames[0], ".")
+							// Usar el hostname si no es un localhost genérico
+							if cleanName != "localhost" {
+								camName = cleanName
+							}
+						}
+
 						mu.Lock()
 						if _, exists := found[ip]; !exists {
 							found[ip] = &Device{
 								ID:       "tcp-" + ip,
-								Name:     fmt.Sprintf("Dispositivo (%s:%d)", ip, p.port),
+								Name:     camName,
 								IP:       ip, Protocol: p.protocol,
 								StreamURL:    fmt.Sprintf("rtsp://%s:554/stream1", ip),
 								IsNativeRTSP: p.port == 554 || p.port == 8554,
 							}
-							log.Printf("📷 TCP puerto %d abierto: %s", p.port, ip)
+							log.Printf("📷 TCP puerto %d abierto: %s (%s)", p.port, ip, camName)
 						}
 						mu.Unlock()
 						break
