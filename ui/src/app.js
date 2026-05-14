@@ -1225,7 +1225,7 @@ async function requestReset() {
   });
   const data = await r.json();
   if (r.ok) {
-    alert('✅ Token generado. Revisa los logs de Docker:\ndocker logs cambrige\n\nToken: ' + (data.token || '(ver logs)'));
+    alert('✅ Token generado. Revisa los logs de Docker:\ndocker logs scryvex\n\nToken: ' + (data.token || '(ver logs)'));
   } else {
     alert('❌ ' + (data.error || 'Error'));
   }

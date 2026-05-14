@@ -56,7 +56,7 @@ func NewPublisher(cfg BrokerConfig) *Publisher {
 		cfg.DiscoveryPrefix = "homeassistant"
 	}
 	if cfg.ClientID == "" {
-		cfg.ClientID = "cambrige-bridge"
+		cfg.ClientID = "scryvex-bridge"
 	}
 	return &Publisher{
 		cfg:     cfg,
@@ -115,7 +115,7 @@ func (p *Publisher) PublishMotion(cameraID string, motion bool) {
 	if motion {
 		state = "ON"
 	}
-	p.publish(fmt.Sprintf("cambrige/%s/motion", cameraID), state, false, 0)
+	p.publish(fmt.Sprintf("scryvex/%s/motion", cameraID), state, false, 0)
 }
 
 // PublishDetection publica payload de detección IA completo
@@ -125,7 +125,7 @@ func (p *Publisher) PublishDetection(cameraID string, detections []map[string]in
 		"detections": detections,
 		"timestamp":  time.Now().Unix(),
 	})
-	p.publish(fmt.Sprintf("cambrige/%s/detection", cameraID), string(data), false, 0)
+	p.publish(fmt.Sprintf("scryvex/%s/detection", cameraID), string(data), false, 0)
 }
 
 // PublishAvailability publica online/offline para una cámara
@@ -134,12 +134,12 @@ func (p *Publisher) PublishAvailability(cameraID string, online bool) {
 	if online {
 		state = "online"
 	}
-	p.publish(fmt.Sprintf("cambrige/%s/availability", cameraID), state, true, 1)
+	p.publish(fmt.Sprintf("scryvex/%s/availability", cameraID), state, true, 1)
 }
 
 // PublishSnapshot publica URL del snapshot más reciente
 func (p *Publisher) PublishSnapshot(cameraID, snapshotURL string) {
-	p.publish(fmt.Sprintf("cambrige/%s/snapshot", cameraID), snapshotURL, false, 0)
+	p.publish(fmt.Sprintf("scryvex/%s/snapshot", cameraID), snapshotURL, false, 0)
 }
 
 // ── Discovery HA ──────────────────────────────────────────────────────────────
@@ -149,19 +149,19 @@ func (p *Publisher) publishDiscovery(cam CameraInfo) {
 
 	// Device info compartido
 	device := map[string]interface{}{
-		"identifiers":   []string{"cambrige_" + camID},
+		"identifiers":   []string{"scryvex_" + camID},
 		"name":          cam.Name,
 		"model":         cam.Type,
-		"manufacturer":  "CamBridge",
-		"sw_version":    "0.1.0",
+		"manufacturer":  "Scryvex",
+		"sw_version":    "1.0.0",
 	}
 
 	// 1. Camera entity (imagen MJPEG del snapshot)
 	cameraConfig := map[string]interface{}{
 		"name":                   cam.Name,
-		"unique_id":              "cambrige_camera_" + camID,
-		"topic":                  fmt.Sprintf("cambrige/%s/snapshot", cam.ID),
-		"availability_topic":     fmt.Sprintf("cambrige/%s/availability", cam.ID),
+		"unique_id":              "scryvex_camera_" + camID,
+		"topic":                  fmt.Sprintf("scryvex/%s/snapshot", cam.ID),
+		"availability_topic":     fmt.Sprintf("scryvex/%s/availability", cam.ID),
 		"payload_available":      "online",
 		"payload_not_available":  "offline",
 		"device":                 device,
@@ -175,12 +175,12 @@ func (p *Publisher) publishDiscovery(cam CameraInfo) {
 	// 2. Binary sensor — movimiento
 	motionConfig := map[string]interface{}{
 		"name":                  cam.Name + " Motion",
-		"unique_id":             "cambrige_motion_" + camID,
+		"unique_id":             "scryvex_motion_" + camID,
 		"device_class":          "motion",
-		"state_topic":           fmt.Sprintf("cambrige/%s/motion", cam.ID),
+		"state_topic":           fmt.Sprintf("scryvex/%s/motion", cam.ID),
 		"payload_on":            "ON",
 		"payload_off":           "OFF",
-		"availability_topic":    fmt.Sprintf("cambrige/%s/availability", cam.ID),
+		"availability_topic":    fmt.Sprintf("scryvex/%s/availability", cam.ID),
 		"payload_available":     "online",
 		"payload_not_available": "offline",
 		"off_delay":             30,
@@ -191,10 +191,10 @@ func (p *Publisher) publishDiscovery(cam CameraInfo) {
 	// 3. Sensor — última detección IA
 	detectionConfig := map[string]interface{}{
 		"name":            cam.Name + " Detección",
-		"unique_id":       "cambrige_detection_" + camID,
-		"state_topic":     fmt.Sprintf("cambrige/%s/motion", cam.ID),
-		"json_attributes_topic": fmt.Sprintf("cambrige/%s/detection", cam.ID),
-		"availability_topic": fmt.Sprintf("cambrige/%s/availability", cam.ID),
+		"unique_id":       "scryvex_detection_" + camID,
+		"state_topic":     fmt.Sprintf("scryvex/%s/motion", cam.ID),
+		"json_attributes_topic": fmt.Sprintf("scryvex/%s/detection", cam.ID),
+		"availability_topic": fmt.Sprintf("scryvex/%s/availability", cam.ID),
 		"payload_available":  "online",
 		"payload_not_available": "offline",
 		"icon":            "mdi:eye",
@@ -205,15 +205,15 @@ func (p *Publisher) publishDiscovery(cam CameraInfo) {
 	// 4. Sensor — URL Matter QR
 	qrConfig := map[string]interface{}{
 		"name":        cam.Name + " Matter QR",
-		"unique_id":   "cambrige_qr_" + camID,
-		"state_topic": fmt.Sprintf("cambrige/%s/matter_qr", cam.ID),
+		"unique_id":   "scryvex_qr_" + camID,
+		"state_topic": fmt.Sprintf("scryvex/%s/matter_qr", cam.ID),
 		"icon":        "mdi:qrcode",
 		"device":      device,
 	}
 	p.publishJSON(fmt.Sprintf("%s/sensor/%s_matter_qr/config", pfx, camID), qrConfig, true)
 
 	// Publicar disponibilidad inicial
-	p.publish(fmt.Sprintf("cambrige/%s/availability", cam.ID), "online", true, 1)
+	p.publish(fmt.Sprintf("scryvex/%s/availability", cam.ID), "online", true, 1)
 	log.Printf("[mqtt] Discovery publicado para: %s", cam.Name)
 }
 
@@ -279,6 +279,11 @@ func (p *Publisher) sendPing() error {
 	}
 	_, err := conn.Write([]byte{0xC0, 0x00}) // PINGREQ
 	return err
+}
+
+func (p *Publisher) Publish(topic, payload string, retain bool) error {
+	p.publish(topic, payload, retain, 0)
+	return nil
 }
 
 func (p *Publisher) publish(topic, payload string, retain bool, qos byte) {

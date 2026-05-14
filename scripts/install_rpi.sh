@@ -3,9 +3,9 @@
 # Probado en: Raspberry Pi 4/5 con Raspberry Pi OS Bookworm 64-bit
 set -euo pipefail
 
-INSTALL_DIR="/opt/cambrige"
+INSTALL_DIR="/opt/scryvex"
 COMPOSE_FILE="docker-compose.rpi.yml"
-COMPOSE_URL="https://raw.githubusercontent.com/cambrige/cambrige/main/$COMPOSE_FILE"
+COMPOSE_URL="https://raw.githubusercontent.com/Chrisalvir1/Scryvex/main/$COMPOSE_FILE"
 
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 
@@ -16,7 +16,7 @@ step() { echo -e "\n${BLUE}▶ $1${NC}"; }
 
 echo -e "${GREEN}"
 echo "  ╔══════════════════════════════════════════╗"
-echo "  ║  CamBridge — Instalador Raspberry Pi     ║"
+echo "  ║  Scryvex — Instalador Raspberry Pi       ║"
 echo "  ║  Compatible: RPi 4 / RPi 5 (arm64)       ║"
 echo "  ╚══════════════════════════════════════════╝"
 echo -e "${NC}"
@@ -51,7 +51,7 @@ if ! docker compose version &>/dev/null; then
 fi
 ok "Docker Compose disponible"
 
-step "Creando directorios CamBridge..."
+step "Creando directorios Scryvex..."
 sudo mkdir -p "$INSTALL_DIR"/{data/{matter/certs,recordings,snapshots},logs,configs}
 sudo chown -R "$USER:$USER" "$INSTALL_DIR"
 ok "Directorios: $INSTALL_DIR"
@@ -64,9 +64,9 @@ if [[ -f "./$COMPOSE_FILE" ]]; then
     ok "Archivos copiados desde directorio local"
 else
     warn "Archivos locales no encontrados, descargando desde GitHub..."
-    curl -fsSL "https://raw.githubusercontent.com/cambrige/cambrige/main/docker-compose.rpi.yml" \
+    curl -fsSL "https://raw.githubusercontent.com/Chrisalvir1/Scryvex/main/docker-compose.rpi.yml" \
         -o "$INSTALL_DIR/docker-compose.yml" 2>/dev/null || \
-        cp "$INSTALL_DIR/../cambrige/$COMPOSE_FILE" "$INSTALL_DIR/docker-compose.yml" 2>/dev/null || \
+        cp "$INSTALL_DIR/../scryvex/$COMPOSE_FILE" "$INSTALL_DIR/docker-compose.yml" 2>/dev/null || \
         warn "No se pudo descargar docker-compose.yml, créalo manualmente"
 fi
 
@@ -76,7 +76,7 @@ if [[ ! -f "$INSTALL_DIR/.env" ]]; then
 TZ=America/Costa_Rica
 MATTER_VID=65521
 MATTER_PID=32768
-MATTER_NAME=CamBridge Hub
+MATTER_NAME=Scryvex Hub
 THREAD_ENABLED=true
 AI_ENABLED=true
 GPU_DEVICE=cpu
@@ -84,26 +84,26 @@ ENVEOF
 fi
 ok ".env configurado"
 
-step "Iniciando CamBridge..."
+step "Iniciando Scryvex..."
 cd "$INSTALL_DIR"
 docker compose pull 2>/dev/null || info "No se pudo pull de imagen, intentar build local"
 docker compose up -d
 
-ok "CamBridge iniciado"
+ok "Scryvex iniciado"
 
-step "Creando alias 'cambrige'..."
-ALIAS_LINE="alias cambrige='docker compose -f $INSTALL_DIR/docker-compose.yml'"
-if ! grep -q "alias cambrige=" ~/.bashrc 2>/dev/null; then
+step "Creando alias 'scryvex'..."
+ALIAS_LINE="alias scryvex='docker compose -f $INSTALL_DIR/docker-compose.yml'"
+if ! grep -q "alias scryvex=" ~/.bashrc 2>/dev/null; then
     echo "$ALIAS_LINE" >> ~/.bashrc
 fi
 
 LOCAL_IP=$(hostname -I | awk '{print $1}')
 echo ""
 echo -e "${GREEN}╔════════════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║       ✅ CamBridge instalado en Raspberry Pi       ║${NC}"
+echo -e "${GREEN}║       ✅ Scryvex instalado en Raspberry Pi         ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════╝${NC}"
 echo ""
-echo -e "  ${BLUE}UI Web:${NC}   http://$LOCAL_IP:8080"
+echo -e "  ${BLUE}UI Web:${NC}   http://$LOCAL_IP:1995"
 echo -e "  ${BLUE}go2rtc:${NC}   http://$LOCAL_IP:1984"
 echo -e "  ${BLUE}Config:${NC}   $INSTALL_DIR/configs/"
 echo -e "  ${BLUE}Logs:${NC}     $INSTALL_DIR/logs/"

@@ -1,9 +1,9 @@
-# CamBridge — Docker Compose para Raspberry Pi OS
+# Scryvex — Docker Compose para Raspberry Pi OS
 # Optimizado para: RPi 4 (4GB+), RPi 5
 # Arquitectura: linux/arm64
 #
 # Uso rápido:
-#   curl -fsSL https://raw.githubusercontent.com/cambrige/cambrige/main/scripts/install_rpi.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Chrisalvir1/Scryvex/main/scripts/install_rpi.sh | bash
 #
 # O manual:
 #   docker compose -f docker-compose.rpi.yml up -d
@@ -11,15 +11,15 @@
 version: "3.9"
 
 services:
-  cambrige:
-    image: ghcr.io/cambrige/cambrige:latest-arm64
+  scryvex:
+    image: ghcr.io/chrisalvir1/scryvex:latest-arm64
     # Build local en RPi (lento ~10min, solo si modificas código):
     # build:
     #   context: .
     #   dockerfile: Dockerfile
     #   args:
     #     TARGETARCH: arm64
-    container_name: cambrige
+    container_name: scryvex
     restart: unless-stopped
 
     # En RPi Linux: network_mode host para que Matter/mDNS funcione
@@ -28,22 +28,22 @@ services:
 
     environment:
       - TZ=${TZ:-America/Costa_Rica}
-      - PORT=8080
+      - PORT=1995
       - MATTER_PORT=5580
       - MATTER_VID=${MATTER_VID:-65521}
       - MATTER_PID=${MATTER_PID:-32768}
-      - MATTER_NAME=${MATTER_NAME:-CamBridge Hub}
+      - MATTER_NAME=${MATTER_NAME:-Scryvex Hub}
       - THREAD_ENABLED=true
       - AI_ENABLED=${AI_ENABLED:-true}
       - GPU_DEVICE=cpu         # RPi usa CPU (no GPU dedicada)
       - TUYA_CLIENT_ID=${TUYA_CLIENT_ID:-}
       - TUYA_CLIENT_SECRET=${TUYA_CLIENT_SECRET:-}
       - TUYA_REGION=${TUYA_REGION:-eu}
-
+    
     volumes:
-      - /opt/cambrige/data:/data
-      - /opt/cambrige/logs:/logs
-      - /opt/cambrige/configs:/app/configs
+      - /opt/scryvex/data:/data
+      - /opt/scryvex/logs:/logs
+      - /opt/scryvex/configs:/app/configs
 
     # RPi: limitar uso de recursos
     deploy:
@@ -62,7 +62,7 @@ services:
     privileged: false
 
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:8080/api/status"]
+      test: ["CMD", "curl", "-sf", "http://localhost:1995/api/status"]
       interval: 30s
       timeout: 15s
       retries: 5

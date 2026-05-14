@@ -43,7 +43,7 @@ fi
 if command -v go &> /dev/null; then
     echo "   Usando Go local..."
     cd cmd/server
-    GOOS=darwin GOARCH=$GOARCH go build -o ../../build/cambridge-server .
+    GOOS=darwin GOARCH=$GOARCH go build -o ../../build/scryvex-server .
     cd ../../scanner-agent
     GOOS=darwin GOARCH=$GOARCH go build -o ../build/scanner-agent .
     cd ..
@@ -54,7 +54,7 @@ else
         exit 1
     fi
     docker run --rm -v "$(pwd):/src" -w /src golang:1.22-alpine sh -c "
-        cd cmd/server && GOOS=darwin GOARCH=$GOARCH go build -o ../../build/cambridge-server . &&
+        cd cmd/server && GOOS=darwin GOARCH=$GOARCH go build -o ../../build/scryvex-server . &&
         cd ../../scanner-agent && GOOS=darwin GOARCH=$GOARCH go build -o ../build/scanner-agent .
     "
 fi
@@ -63,21 +63,21 @@ fi
 # En Mac usamos VideoToolbox
 echo "🏎️ Configurando aceleración por GPU (VideoToolbox)..."
 cat > build/.env <<EOF
-PORT=8080
+PORT=1995
 FFMPEG_HWACCEL=videotoolbox
 GPU_ENABLED=true
 SCANNER_PORT=9876
 EOF
 
 # 6. Crear Script de Ejecución Unificado
-cat > cambridge-hub <<EOF
+cat > scryvex-hub <<EOF
 #!/bin/bash
 trap "pkill -f scanner-agent; exit" SIGINT SIGTERM
 ./scanner-agent &
-./cambridge-server -data ./data -port 8080
+./scryvex-server -data ./data -port 1995
 EOF
-chmod +x cambridge-hub
-mv cambridge-hub build/
+chmod +x scryvex-hub
+mv scryvex-hub build/
 
 # 7. Preparar UI
 echo "🌐 Sincronizando interfaz de usuario..."

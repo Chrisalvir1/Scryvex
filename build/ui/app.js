@@ -1,9 +1,20 @@
-// Scryvex UI v0.2.0 — app.js con Auth
+// Scryvex UI v1.0.0 — app.js con Auth
 const API = '';
 
+// ── localStorage helpers (safe — sandbox/Docker may block storage) ──
+function lsGet(key, fallback = null) {
+  try { const v = localStorage.getItem(key); return v !== null ? v : fallback; } catch { return fallback; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* storage unavailable */ }
+}
+function lsRemove(key) {
+  try { localStorage.removeItem(key); } catch { /* storage unavailable */ }
+}
+
 // ── Auth State ────────────────────────────────────────────────
-let authToken = localStorage.getItem('cb_token') || '';
-let authUser = JSON.parse(localStorage.getItem('cb_user') || 'null');
+let authToken = lsGet('cb_token', '');
+let authUser = JSON.parse(lsGet('cb_user', 'null'));
 
 function getHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken };
@@ -27,7 +38,8 @@ function bootApp() {
   // Mostrar nombre de usuario en sidebar
   const userEl = document.getElementById('sidebar-user');
   if (userEl && authUser) {
-    const avatar = authUser.avatar_url ? `<img src="${authUser.avatar_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">${authUser.username[0].toUpperCase()}</div>`;
+    const userInitial = (authUser && authUser.username) ? authUser.username[0].toUpperCase() : '?';
+    const avatar = (authUser && authUser.avatar_url) ? `<img src="${authUser.avatar_url}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">` : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700">${userInitial}</div>`;
     userEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-top:1px solid rgba(255,255,255,0.08);margin-top:auto;cursor:pointer" onclick="openProfileModal()">
         ${avatar}
@@ -64,6 +76,7 @@ function showPage(name, el) {
   document.getElementById('page-title').textContent = {
     dashboard: 'Dashboard',
     cameras: 'Cámaras',
+    plugins: 'Plugins Scryvex 1.0',
     discover: 'Descubrir',
     homekit: 'HomeKit / Matter',
     settings: 'Configuración'
@@ -82,7 +95,7 @@ async function fetchStatus() {
     const res = await fetch(API + '/api/status');
     const data = await res.json();
     setOnline(true);
-    document.getElementById('stat-ver').textContent = data.version || '0.1.1';
+    document.getElementById('stat-ver').textContent = data.version || '1.0.0';
 
     // Update sub-services (simulated or real checks)
     updateSvcStatus('svc-go2rtc', true, 'Activo');
@@ -128,14 +141,14 @@ async function fetchCameras() {
     if (Array.isArray(backendCams) && backendCams.length > 0) {
       cameras = backendCams;
       // Also sync to localStorage as backup
-      localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+      lsSet('cb_cameras', JSON.stringify(cameras));
     } else {
       // Backend empty - check localStorage as fallback
-      const local = JSON.parse(localStorage.getItem('cb_cameras') || '[]');
+      const local = JSON.parse(lsGet('cb_cameras') || '[]');
       cameras = local;
     }
   } catch {
-    cameras = JSON.parse(localStorage.getItem('cb_cameras') || '[]');
+    cameras = JSON.parse(lsGet('cb_cameras') || '[]');
   }
   renderCameras();
 }
@@ -165,10 +178,19 @@ function renderCameraList(containerId) {
     return;
   }
 
-  // Grouping by brand (or RTSP/HLS)
+  // Grouping by brand (or RTSP/HLS/Plugin)
   const grouped = {};
   cameras.forEach(c => {
-    const group = c.brand || (c.type === 'rtsp' ? 'RTSP/ONVIF' : c.type === 'hls' ? 'HLS' : 'Otras');
+    let group = c.brand;
+    if (!group) {
+        if (c.type === 'plugin') group = '🔌 Plugins (Scryvex 1.0)';
+        else if (c.type === 'rtsp') group = '🎥 RTSP/ONVIF';
+        else if (c.type === 'hls') group = '🌐 HLS';
+        else group = 'Otras';
+    } else {
+        if (c.type === 'plugin') group = `🔌 Plugin: ${group}`;
+    }
+    
     if (!grouped[group]) grouped[group] = [];
     grouped[group].push(c);
   });
@@ -215,13 +237,49 @@ function renderQRGrid() {
     return;
   }
   el.innerHTML = cameras.map((c, i) => `
-    <div class="glass" style="padding:20px;text-align:center;border-radius:16px">
-      <div style="font-weight:600;margin-bottom:12px">${c.name || 'Cámara ' + (i + 1)}</div>
-      <div style="width:120px;height:120px;margin:0 auto;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#333;padding:8px;text-align:center;">
-        QR Matter<br/><small style="font-family:monospace">${c.id || 'ID-' + i}</small>
+    <div class="glass" style="padding:24px; text-align:center; border-radius:24px; border: 1.5px solid rgba(255,255,255,0.08);">
+      <div style="font-weight:700; font-size:16px; margin-bottom:16px; text-transform:uppercase; letter-spacing:0.5px;">${c.name || 'Cámara ' + (i + 1)}</div>
+      <div id="qr-container-${c.id || i}" style="width:180px; height:180px; margin:0 auto; background:white; border-radius:16px; display:flex; align-items:center; justify-content:center; padding:16px; position:relative; overflow:hidden;">
+         <div class="loader"></div>
       </div>
-      <div style="margin-top:12px;font-size:12px;color:var(--text3)">Escanear con HomeKit</div>
+      <div style="margin-top:20px; font-size:13px; color:var(--text3); font-weight:500;">Escaneame con HomeKit</div>
     </div>`).join('');
+
+  // Generar QRs reales llamando al bridge
+  cameras.forEach(async (c, i) => {
+      const targetId = `qr-container-${c.id || i}`;
+      const target = document.getElementById(targetId);
+      if (!target) return;
+
+      try {
+          // 1. Intentar registrar la cámara en el bridge si no existe
+          await fetch('/api/matter/cameras/' + (c.id || i), {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: c.name })
+          });
+
+          // 2. Obtener el payload
+          const r = await fetch('/api/matter/cameras/' + (c.id || i));
+          const data = await r.json();
+          
+          if (data.qrPayload) {
+              target.innerHTML = ''; // Limpiar loader
+              new QRCode(target, {
+                  text: data.qrPayload,
+                  width: 148,
+                  height: 148,
+                  colorDark: "#000000",
+                  colorLight: "#ffffff",
+                  correctLevel: QRCode.CorrectLevel.M
+              });
+          } else {
+              target.innerHTML = '<p style="color:#666;font-size:10px">Error de Payload</p>';
+          }
+      } catch(e) {
+          target.innerHTML = '<p style="color:#666;font-size:10px">Bridge Offline</p>';
+      }
+  });
 }
 
 // ── Add Camera Modal ──────────────────────────────────────────
@@ -247,8 +305,19 @@ function addCamera() {
   let cam = {};
   if (currentType === 'rtsp') {
     const name = document.getElementById('cam-name').value.trim();
-    const url = document.getElementById('cam-url').value.trim();
+    let url = document.getElementById('cam-url').value.trim();
+    if (url && !url.includes('://')) url = 'rtsp://' + url;
+    const user = document.getElementById('cam-user').value.trim();
+    const pass = document.getElementById('cam-pass').value.trim();
+
     if (!name || !url) { toast('Completa nombre y URL RTSP', 'error'); return; }
+
+    // Inyectar credenciales si se proporcionan por separado
+    if (user && !url.includes('@')) {
+      const auth = pass ? `${encodeURIComponent(user)}:${encodeURIComponent(pass)}` : encodeURIComponent(user);
+      url = url.replace('rtsp://', `rtsp://${auth}@`);
+    }
+
     cam = {
       id: 'cam-' + Date.now(), name, url, type: 'rtsp', enabled: true,
       ai: document.getElementById('toggle-cam-ai').classList.contains('active')
@@ -267,7 +336,7 @@ function addCamera() {
 
 function saveNewCamera(cam) {
   cameras.push(cam);
-  localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+  lsSet('cb_cameras', JSON.stringify(cameras));
   renderCameras();
   closeModal();
   toast('✅ Cámara "' + cam.name + '" agregada', 'success');
@@ -283,7 +352,7 @@ function saveNewCamera(cam) {
 // ── Brand Plugin System ────────────────────────────────────────
 const BRAND_PLUGINS = {
   'Tuya': {
-    logo: '🏠', name: 'Tuya / Smart Life',
+    logo: 'https://logo.clearbit.com/tuya.com', name: 'Tuya / Smart Life',
     desc: 'Usa tu cuenta de Tuya Smart o Smart Life. Cubre Tuya, Vicohome y cientos de marcas.',
     fields: [
       { id: 'cloud-user', label: 'Email', type: 'email', ph: 'tu@email.com' },
@@ -294,7 +363,7 @@ const BRAND_PLUGINS = {
     api: 'tuya',
   },
   'Vicohome': {
-    logo: '📹', name: 'Vicohome',
+    logo: 'https://logo.clearbit.com/vicohome.io', name: 'Vicohome',
     desc: 'Vicohome usa servidores Tuya. Inicia sesión con tu cuenta de la app Vicohome.',
     fields: [
       { id: 'cloud-user', label: 'Email de Vicohome', type: 'email', ph: 'tu@email.com' },
@@ -304,7 +373,7 @@ const BRAND_PLUGINS = {
     api: 'vicohome',
   },
   'Ring': {
-    logo: '🔔', name: 'Ring (Amazon)',
+    logo: 'https://logo.clearbit.com/ring.com', name: 'Ring (Amazon)',
     desc: 'Importa doorbells y cámaras Ring con tu cuenta de Amazon.',
     fields: [
       { id: 'cloud-user', label: 'Email de Ring', type: 'email', ph: 'tu@email.com' },
@@ -315,7 +384,7 @@ const BRAND_PLUGINS = {
     api: 'ring',
   },
   'Tapo': {
-    logo: '🔗', name: 'Tapo / TP-Link',
+    logo: 'https://logo.clearbit.com/tp-link.com', name: 'Tapo / TP-Link',
     desc: 'Importa cámaras Tapo C120, C400, C420 y más con tu cuenta TP-Link.',
     fields: [
       { id: 'cloud-user', label: 'Email de TP-Link', type: 'email', ph: 'tu@email.com' },
@@ -325,7 +394,7 @@ const BRAND_PLUGINS = {
     api: 'tapo',
   },
   'Ezviz': {
-    logo: '🛡️', name: 'Ezviz (Hikvision)',
+    logo: 'https://logo.clearbit.com/ezvizlife.com', name: 'Ezviz (Hikvision)',
     desc: 'Importa cámaras Ezviz con tu cuenta de la app.',
     fields: [
       { id: 'cloud-user', label: 'Email de Ezviz', type: 'email', ph: 'tu@email.com' },
@@ -335,7 +404,7 @@ const BRAND_PLUGINS = {
     api: 'ezviz',
   },
   'Wyze': {
-    logo: '👁️', name: 'Wyze',
+    logo: 'https://logo.clearbit.com/wyze.com', name: 'Wyze',
     desc: 'Conecta cámaras Wyze Cam con tu cuenta Wyze.',
     fields: [
       { id: 'cloud-user', label: 'Email de Wyze', type: 'email', ph: 'tu@email.com' },
@@ -346,7 +415,7 @@ const BRAND_PLUGINS = {
     api: 'wyze',
   },
   'Google Nest': {
-    logo: '🌐', name: 'Google Nest',
+    logo: 'https://cdn.simpleicons.org/googlenest', name: 'Google Nest',
     desc: 'Conecta cámaras Nest vía Google Device Access API.',
     fields: [
       { id: 'cloud-project', label: 'Project ID', type: 'text', ph: 'enterprise/abc123...' },
@@ -356,7 +425,7 @@ const BRAND_PLUGINS = {
     api: 'nest',
   },
   'Aqara': {
-    logo: '🌿', name: 'Aqara',
+    logo: 'https://logo.clearbit.com/aqara.com', name: 'Aqara',
     desc: 'Importa cámaras y hubs Aqara G3, G2H, E1 con tu cuenta de la app.',
     fields: [
       { id: 'cloud-user', label: 'Email de Aqara', type: 'email', ph: 'tu@email.com' },
@@ -365,6 +434,16 @@ const BRAND_PLUGINS = {
     ],
     note: '🌿 Compatible con Aqara G3, G2H Pro y plataforma de cámaras.',
     api: 'aqara',
+  },
+  'Vimtag': {
+    logo: 'https://logo.clearbit.com/vimtag.com', name: 'Vimtag / Fujikam',
+    desc: 'Conecta cámaras Vimtag y Fujikam con tu cuenta de la app.',
+    fields: [
+      { id: 'cloud-user', label: 'Usuario/Email', type: 'text', ph: 'usuario' },
+      { id: 'cloud-pass', label: 'Contraseña', type: 'password', ph: '••••••••' },
+    ],
+    note: '📦 Compatible con modelos P1, CP1 y cámaras de exterior.',
+    api: 'vimtag',
   },
 };
 
@@ -379,7 +458,7 @@ function selectBrandPlugin(brand, el) {
   if (el) el.classList.add('selected');
 
   const iconHTML = plugin.logo.startsWith('http')
-    ? `<img src="${plugin.logo}" style="width:40px;height:40px;object-fit:contain;border-radius:8px;" onerror="this.innerHTML='📦'" alt="${plugin.name}">`
+    ? `<img src="${plugin.logo}" style="width:40px;height:40px;object-fit:contain;border-radius:8px;" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='inline')" alt="${plugin.name}">`
     : `<span style="font-size:32px;">${plugin.logo}</span>`;
 
   document.getElementById('brand-plugin-icon').innerHTML = iconHTML;
@@ -390,7 +469,7 @@ function selectBrandPlugin(brand, el) {
   const fieldsEl = document.getElementById('brand-fields');
   fieldsEl.innerHTML = plugin.fields.map(f => {
     // Intentar recuperar el valor guardado para este campo específico de esta marca
-    const savedVal = localStorage.getItem(`cb_cloud_${brand}_${f.id}`) || '';
+    const savedVal = lsGet(`cb_cloud_${brand}_${f.id}`) || '';
     
     if (f.type === 'select') {
       return `<div>
@@ -417,7 +496,7 @@ function selectBrandPlugin(brand, el) {
   document.getElementById('vico-results').innerHTML = '';
   
   setTimeout(() => {
-    const firstEmpty = plugin.fields.find(f => !localStorage.getItem(`cb_cloud_${brand}_${f.id}`));
+    const firstEmpty = plugin.fields.find(f => !lsGet(`cb_cloud_${brand}_${f.id}`));
     if (firstEmpty) document.getElementById(firstEmpty.id)?.focus();
   }, 100);
 }
@@ -443,19 +522,24 @@ async function fetchCloudCameras() {
   // Guardar dinámicamente TODOS los campos de esta marca para persistencia total
   plugin.fields.forEach(f => {
     const val = document.getElementById(f.id)?.value?.trim();
-    if (val) localStorage.setItem(`cb_cloud_${brand}_${f.id}`, val);
+    if (val) lsSet(`cb_cloud_${brand}_${f.id}`, val);
   });
 
-  const user = document.getElementById('cloud-user')?.value?.trim();
-  const pass = document.getElementById('cloud-pass')?.value?.trim();
+  const user = (document.getElementById('cloud-user') || document.getElementById('cloud-project'))?.value?.trim()
+    || lsGet(`cb_cloud_${brand}_cloud-user`) || lsGet(`cb_cloud_${brand}_cloud-project`) || '';
+  const pass = document.getElementById('cloud-pass')?.value?.trim()
+    || lsGet(`cb_cloud_${brand}_cloud-pass`) || '';
 
   const resDiv = document.getElementById('vico-results');
   resDiv.style.display = 'flex';
+  const _spinnerIcon = plugin.logo.startsWith('http')
+    ? `<img src="${plugin.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:10px;margin-bottom:8px;" alt="${plugin.name}">`
+    : `<span style="font-size:40px;line-height:1;margin-bottom:8px;display:block;">${plugin.logo}</span>`;
   resDiv.innerHTML = `<div style="text-align:center;padding:20px;width:100%;">
-    <img src="${plugin.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:10px;margin-bottom:8px;" alt="${plugin.name}">
-    <div class="loading-spinner" style="margin: 0 auto 12px;"></div>
+    ${_spinnerIcon}
+    <div class="loader" style="margin: 0 auto 12px;"></div>
     <div style="font-weight:600;margin-bottom:4px;">Conectando con ${plugin.name}...</div>
-    <div style="font-size:12px;color:var(--text3);" id="cloud-status-text">Autenticando con Ring Cloud...</div>
+    <div style="font-size:12px;color:var(--text3);" id="cloud-status-text">Autenticando...</div>
   </div>`;
 
   if (plugin.api === 'tuya' || plugin.api === 'vicohome') {
@@ -496,7 +580,7 @@ async function fetchCloudCameras() {
       
       if (data.ok && data.token) {
         // Guardar el token automáticamente para el Bridge
-        localStorage.setItem('cb_ring_token', data.token);
+        lsSet('cb_ring_token', data.token);
         if (document.getElementById('cfg-ring-token')) document.getElementById('cfg-ring-token').value = data.token;
         
         if (data.cameras && data.cameras.length > 0) {
@@ -575,7 +659,7 @@ function showCloudResults(brand, cams, logo) {
               <div style="font-size:11px;color:var(--text3);">${c.ip || 'Vía nube'}</div>
             </div>
           </div>
-          ${!isPlaceholder ? `<button class="btn-primary" style="padding:8px 14px;font-size:12px;" onclick='importDiscovered(${JSON.stringify(c)})'>+ Agregar</button>` : ''}
+          ${!isPlaceholder ? `<button class="btn-primary" style="padding:8px 14px;font-size:12px;" onclick="importFromBtn(this)" data-cam='${JSON.stringify(c).replace(/'/g, "&#39;")}'>`+ Agregar</button>` : ''}
         </div>
         
         ${isPlaceholder ? `
@@ -624,7 +708,7 @@ function removeCamera(i) {
   // Delete from backend
   fetch(API + '/api/cameras/' + encodeURIComponent(cam.id), { method: 'DELETE' })
     .catch(() => { }); // Silent fail - local state already updated
-  localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+  lsSet('cb_cameras', JSON.stringify(cameras));
   renderCameras();
   toast('Cámara "' + name + '" eliminada', 'success');
 }
@@ -647,8 +731,16 @@ function viewStream(i, btn) {
 
   activeStreamIndex = i; // Bloquear el refresco del DOM
 
-  // Forzar siempre reproducción inline. NO hay window.open aquí.
-  const iframeSrc = `/go2rtc/stream.html?src=${encodeURIComponent(streamId)}&mode=webrtc,mse,mp4,mjpeg`;
+  const codec = lsGet('scryvex_codec') || 'auto';
+  const lowLatency = lsGet('scryvex_lowlatency') === 'true';
+
+  // Configuración de go2rtc para Scryvex 1.0 (Zero Lag & High Quality)
+  let params = `src=${encodeURIComponent(streamId)}&mode=webrtc,mse`;
+  if (codec === 'h265') params += '&video=h265';
+  if (codec === 'h264') params += '&video=h264';
+  if (lowLatency) params += '&video=fast';
+  
+  const iframeSrc = `/go2rtc/stream.html?${params}`;
   
   preview.innerHTML = `
     <iframe src="${iframeSrc}" style="width:100%;height:100%;border:none;border-radius:12px;background:#000" allow="autoplay; fullscreen"></iframe>
@@ -739,7 +831,7 @@ async function startScan() {
             <div style="font-family:monospace;font-size:11px;color:var(--text3);opacity:0.7;margin-top:2px">${c.stream_url || ''}</div>
           </div>
           <button class="btn-primary" style="white-space:nowrap;padding:8px 14px;font-size:13px" 
-            onclick='importDiscovered(${JSON.stringify(c)})'>+ Agregar</button>
+            onclick="importFromBtn(this)">+ Agregar</button>
         </div>`;
       };
 
@@ -778,6 +870,14 @@ function importDiscovered(cam) {
     enabled: true,
     homekit: true,
   };
+
+  // Registrar en el Matter Bridge para generar el QR
+  fetch('/api/matter/cameras/' + newCam.id + '/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: newCam.name })
+  }).catch(e => console.warn('Matter Bridge no disponible', e));
+
   // Save to backend (persistent in data/cameras.json)
   fetch(API + '/api/cameras', {
     method: 'POST',
@@ -790,10 +890,46 @@ function importDiscovered(cam) {
   }).catch(() => {
     // Fallback to localStorage if backend unreachable
     cameras.push(newCam);
-    localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+    lsSet('cb_cameras', JSON.stringify(cameras));
     renderCameras();
     toast('✅ Cámara importada (local): ' + newCam.name, 'success');
   });
+}
+// Safe wrapper — avoids single-quote injection in onclick attributes
+function importFromBtn(btn) {
+  try {
+    const raw = btn.getAttribute('data-cam').replace(/&#39;/g, "'");
+    importDiscovered(JSON.parse(raw));
+  } catch(e) {
+    console.error('importFromBtn parse error', e);
+    toast('Error al importar cámara', 'error');
+  }
+}
+
+
+// ── Matter UI ─────────────────────────────────────────────────
+async function fetchMatterQR(id) {
+  const container = document.getElementById('matter-qr-container');
+  if (!container) return;
+  container.innerHTML = '<div class="loader"></div><p style="font-size:11px;color:var(--text3)">Generando QR Matter...</p>';
+  
+  try {
+    const r = await fetch('/api/matter/cameras/' + id);
+    const d = await r.json();
+    if (d.qrPayload) {
+      container.innerHTML = `
+        <div style="background:white; padding:12px; border-radius:12px; display:inline-block; margin:10px 0;">
+          <img src="${d.qrImageUrl}" style="width:180px; height:180px; display:block;">
+        </div>
+        <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; font-family:monospace; font-size:12px; color:var(--text2); margin-top:8px;">
+          Setup Code: <strong>${d.manualCode}</strong>
+        </div>
+        <p style="font-size:11px; color:var(--text3); margin-top:12px;">Válido para Apple Home, Google y Alexa.</p>
+      `;
+    }
+  } catch (e) {
+    container.innerHTML = '<p style="color:var(--danger);font-size:12px;">Matter Bridge no disponible.</p>';
+  }
 }
 
 // ── Camera Settings ───────────────────────────────────────────
@@ -804,147 +940,99 @@ function openCameraSettings(i) {
   const c = cameras[i];
 
   if (c.ip && c.ip.includes('XX')) {
-    toast('Debes configurar la IP real de la cámara primero. Bórrala y vuelve a agregarla.', 'error');
+    toast('Debes configurar la IP real de la cámara.', 'error');
     return;
   }
 
-  // Determinar la URL para el reproductor
   const streamUrl = (c.type === 'hls' || c.type === 'cloud') ? (c.stream_url || c.url) : c.url;
   const encodedSrc = encodeURIComponent(streamUrl);
 
-  // Entidades simuladas (esto vendrá del backend según la marca)
-  const entitiesHTML = c.type === 'cloud' ? `
-    <div style="margin-top:16px;">
-      <h4 style="font-size:12px; color:var(--text3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Datos y Entidades de la Cámara</h4>
-      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
-        <div class="glass" style="padding:10px; display:flex; align-items:center; gap:8px; font-size:13px;">
-          <span>🌐</span> IP: <strong>${c.ip || 'Oculta por nube'}</strong>
-        </div>
-        <div class="glass" style="padding:10px; display:flex; align-items:center; gap:8px; font-size:13px;">
-          <span>🏷️</span> MAC: <strong>${c.mac || 'Desconocida'}</strong>
-        </div>
-        <div class="glass" style="padding:10px; display:flex; align-items:center; gap:8px; font-size:13px;">
-          <span>🔋</span> Batería: <strong>${c.battery ? c.battery + '%' : 'N/A'}</strong>
-        </div>
-        <div class="glass" style="padding:10px; display:flex; align-items:center; gap:8px; font-size:13px;">
-          <span>📶</span> Señal: <strong>${c.signal || 'Excelente'}</strong>
-        </div>
-      </div>
-    </div>
-  ` : '';
-
   const modalHTML = `
   <div class="modal-overlay open" id="modal-cam-settings" onclick="closeCamSettings()">
-    <div class="modal glass" onclick="event.stopPropagation()" style="max-width:500px;">
+    <div class="modal glass" onclick="event.stopPropagation()" style="max-width:550px;">
       <div class="modal-header">
-        <h2>${c.name}</h2>
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:32px; height:32px; background:var(--accent-gradient); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px;">📷</div>
+          <h2 style="margin:0;">Configuración</h2>
+        </div>
         <button class="btn-close" onclick="closeCamSettings()">✕</button>
       </div>
       
-      <!-- Reproductor Real via go2rtc -->
-      <div style="width:100%; aspect-ratio:16/9; background:#000; border-radius:8px; overflow:hidden; position:relative; margin-bottom:16px;">
-        <iframe 
-          src="/go2rtc/webrtc.html?src=${encodedSrc}" 
-          style="width:100%; height:100%; border:none;" 
-          allowfullscreen>
-        </iframe>
-      </div>
-
-      <div class="modal-body" style="max-height: 40vh; overflow-y: auto; padding-right: 8px;">
-        <div class="form-group">
-          <label>Nombre de la cámara</label>
-          <input class="glass-input" id="set-cam-name" type="text" value="${c.name || ''}" />
+      <div class="modal-body" style="padding-top:0;">
+        <div style="width:100%; aspect-ratio:16/9; background:#000; border-radius:12px; overflow:hidden; position:relative; margin-bottom:20px;">
+          <iframe src="/go2rtc/webrtc.html?src=${encodedSrc}" style="width:100%; height:100%; border:none;"></iframe>
         </div>
-        
-        ${entitiesHTML}
 
-        <div style="margin-top:16px;">
-          <h4 style="font-size:12px; color:var(--text3); margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;">Ajustes del Sistema</h4>
+        <div class="tabs" style="display:flex; gap:20px; border-bottom:1px solid rgba(255,255,255,0.05); margin-bottom:20px;">
+          <button class="tab-btn active" id="tab-btn-general" onclick="switchSettingsTab('general')">General</button>
+          <button class="tab-btn" id="tab-btn-matter" onclick="switchSettingsTab('matter')">Matter</button>
+          <button class="tab-btn" id="tab-btn-ai" onclick="switchSettingsTab('ai')">IA</button>
+        </div>
+
+        <div id="settings-tab-general" class="tab-content">
+          <div class="form-group">
+            <label>Nombre de la cámara</label>
+            <input class="glass-input" id="set-cam-name" type="text" value="${c.name}"/>
+          </div>
           <div class="form-group toggle-group">
-            <label>Activar cámara en Scryvex</label>
+            <label>Cámara activa</label>
             <div class="toggle ${c.enabled !== false ? 'active' : ''}" id="set-cam-enabled" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
           </div>
-          <div class="form-group toggle-group" style="margin-top: 10px;">
-            <label>Exportar a HomeKit (Matter)</label>
-            <div class="toggle ${c.homekit !== false ? 'active' : ''}" id="set-cam-hk" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
+          <button class="btn-glass" style="width:100%; color:var(--danger); margin-top:15px;" onclick="deleteCamera(${i})">Eliminar Cámara</button>
+        </div>
+
+        <div id="settings-tab-matter" class="tab-content" style="display:none; text-align:center;">
+          <div id="matter-qr-container" style="min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+             <div class="loader"></div>
           </div>
-          <div class="form-group toggle-group" style="margin-top: 10px;">
-            <label>Detección Inteligente (AI)</label>
-            <div class="toggle ${c.ai ? 'active' : ''}" id="set-cam-ai" onclick="toggleAISection(this.classList.contains('active'))"><div class="toggle-knob"></div></div>
+        </div>
+
+        <div id="settings-tab-ai" class="tab-content" style="display:none;">
+          <div class="form-group toggle-group">
+            <label>Detección Inteligente</label>
+            <div class="toggle ${c.ai ? 'active' : ''}" id="set-cam-ai" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
           </div>
-          
-          <div id="ai-filters" style="display:${c.ai ? 'grid' : 'none'}; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px; padding:12px; background:rgba(255,255,255,0.03); border-radius:12px;">
-            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
-              <input type="checkbox" id="ai-person" ${c.detect_person !== false ? 'checked' : ''}> Personas
-            </div>
-            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
-              <input type="checkbox" id="ai-pet" ${c.detect_pet ? 'checked' : ''}> Mascotas
-            </div>
-            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
-              <input type="checkbox" id="ai-vehicle" ${c.detect_vehicle ? 'checked' : ''}> Vehículos
-            </div>
-            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
-              <input type="checkbox" id="ai-package" ${c.detect_package ? 'checked' : ''}> Paquetes
-            </div>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:12px; padding:15px; background:rgba(255,255,255,0.03); border-radius:12px;">
+            <label style="font-size:13px;"><input type="checkbox" id="ai-person" ${c.detect_person !== false ? 'checked' : ''}> Personas</label>
+            <label style="font-size:13px;"><input type="checkbox" id="ai-vehicle" ${c.detect_vehicle ? 'checked' : ''}> Vehículos</label>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" onclick="closeCamSettings()">Cerrar</button>
-        <button class="btn-primary" onclick="saveCamSettings()">Guardar Ajustes</button>
+      <div class="modal-footer" style="padding-top:0;">
+        <button class="btn-primary" style="width:100%" onclick="saveCamSettings()">Guardar Ajustes</button>
       </div>
     </div>
   </div>`;
-
+  
   document.body.insertAdjacentHTML('beforeend', modalHTML);
-
-  // El stream se carga automáticamente vía iframe/go2rtc
 }
 
-function toggleAISection(active) {
-  const btn = document.getElementById('set-cam-ai');
-  const section = document.getElementById('ai-filters');
-  const isActive = btn.classList.toggle('active');
-  if (section) section.style.display = isActive ? 'grid' : 'none';
+function switchSettingsTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('settings-tab-' + tab).style.display = 'block';
+  document.getElementById('tab-btn-' + tab).classList.add('active');
+  if (tab === 'matter') fetchMatterQR(cameras[currentEditingCam].id);
 }
 
 function closeCamSettings() {
   const modal = document.getElementById('modal-cam-settings');
-  if (modal) {
-    // Detener la transmisión para no consumir recursos
-    const video = document.getElementById('settings-player');
-    if (video) {
-      video.pause();
-      video.src = "";
-      video.load();
-    }
-    modal.remove();
-  }
+  if (modal) modal.remove();
   currentEditingCam = null;
 }
 
 function saveCamSettings() {
   if (currentEditingCam === null) return;
   const c = cameras[currentEditingCam];
-
   c.name = document.getElementById('set-cam-name').value.trim();
   c.enabled = document.getElementById('set-cam-enabled').classList.contains('active');
-  c.homekit = document.getElementById('set-cam-hk').classList.contains('active');
   c.ai = document.getElementById('set-cam-ai').classList.contains('active');
-
-  if (c.type === 'cloud') {
-    c.light_on = document.getElementById('set-cam-light')?.classList.contains('active');
-    c.detect_person = document.getElementById('ai-person')?.checked;
-    c.detect_pet = document.getElementById('ai-pet')?.checked;
-    c.detect_vehicle = document.getElementById('ai-vehicle')?.checked;
-    c.detect_package = document.getElementById('ai-package')?.checked;
-  }
-
-  localStorage.setItem('cb_cameras', JSON.stringify(cameras));
+  c.detect_person = document.getElementById('ai-person').checked;
+  c.detect_vehicle = document.getElementById('ai-vehicle').checked;
+  lsSet('cb_cameras', JSON.stringify(cameras));
   renderCameras();
   closeCamSettings();
-
-  toast('💾 Ajustes guardados. Sincronizando...', 'success');
+  toast('💾 Ajustes guardados', 'success');
 }
 
 // ── Settings ──────────────────────────────────────────────────
@@ -969,7 +1057,7 @@ function saveSettings() {
       gpu: document.getElementById('cfg-gpu').value
     }
   };
-  localStorage.setItem('cb_config', JSON.stringify(cfg));
+  lsSet('cb_config', JSON.stringify(cfg));
   toast('✅ Configuración guardada (reinicia Docker para aplicar)', 'success');
 }
 
@@ -1107,8 +1195,8 @@ async function doLogin() {
 
     authToken = data.token;
     authUser = data.user;
-    localStorage.setItem('cb_token', authToken);
-    localStorage.setItem('cb_user', JSON.stringify(authUser));
+    lsSet('cb_token', authToken);
+    lsSet('cb_user', JSON.stringify(authUser));
 
     // Ocultar login y mostrar app
     document.getElementById('login-screen').style.display = 'none';
@@ -1137,7 +1225,7 @@ async function requestReset() {
   });
   const data = await r.json();
   if (r.ok) {
-    alert('✅ Token generado. Revisa los logs de Docker:\ndocker logs cambrige\n\nToken: ' + (data.token || '(ver logs)'));
+    alert('✅ Token generado. Revisa los logs de Docker:\ndocker logs scryvex\n\nToken: ' + (data.token || '(ver logs)'));
   } else {
     alert('❌ ' + (data.error || 'Error'));
   }
@@ -1165,8 +1253,8 @@ async function doReset() {
 function logout() {
   authToken = '';
   authUser = null;
-  localStorage.removeItem('cb_token');
-  localStorage.removeItem('cb_user');
+  lsRemove('cb_token');
+  lsRemove('cb_user');
   location.reload();
 }
 
@@ -1312,7 +1400,7 @@ function openProfileModal() {
           <div id="profile-avatar-preview" 
             onclick="document.getElementById('avatar-upload-input').click()"
             style="width:100px;height:100px;border-radius:50%;margin:0 auto 12px;background:rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid var(--accent);cursor:pointer;position:relative;group">
-            ${authUser.avatar_url ? `<img src="${authUser.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:36px;font-weight:700">${authUser.username[0].toUpperCase()}</span>`}
+            ${(authUser && authUser.avatar_url) ? `<img src="${authUser.avatar_url}" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:36px;font-weight:700">${(authUser && authUser.username) ? authUser.username[0].toUpperCase() : '?'}</span>`}
             <div style="position:absolute; inset:0; background:rgba(0,0,0,0.4); display:flex; align-items:center; justify-content:center; opacity:0; transition:opacity 0.2s; color:#fff; font-size:24px;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">📷</div>
           </div>
           <input type="file" id="avatar-upload-input" style="display:none" accept="image/*" onchange="uploadAvatar(this)">
@@ -1354,8 +1442,8 @@ async function updateProfile() {
 }
 
 function logout() {
-  localStorage.removeItem('cb_token');
-  localStorage.removeItem('cb_user');
+  lsRemove('cb_token');
+  lsRemove('cb_user');
   location.reload();
 }
 
@@ -1363,9 +1451,9 @@ function logout() {
 // ── Ring Bridge Logic ──────────────────────────────────────────
 async function generateRingToken() {
   const brand = 'Ring';
-  const email = localStorage.getItem(`cb_cloud_${brand}_cloud-user`);
-  const pass = localStorage.getItem(`cb_cloud_${brand}_cloud-pass`);
-  const code = localStorage.getItem(`cb_cloud_${brand}_cloud-2fa`);
+  const email = lsGet(`cb_cloud_${brand}_cloud-user`);
+  const pass = lsGet(`cb_cloud_${brand}_cloud-pass`);
+  const code = lsGet(`cb_cloud_${brand}_cloud-2fa`);
 
   if (!email || !pass) {
     toast('Primero ingresa tus credenciales en el modal de Agregar Cámara -> Ring', 'error');
@@ -1425,4 +1513,76 @@ async function testRingBridge() {
   setTimeout(() => {
     toast('📡 Puente Scryvex Ring: ONLINE (Simulado)', 'success');
   }, 2000);
+}
+
+// ── Plugin Management (Scryvex 1.0) ───────────────────────────
+let activePlugin = null;
+
+function openPluginSettings(id) {
+    activePlugin = id;
+    const config = {
+        ring: { name: 'Ring', color: '#007bff', icon: 'R' },
+        vicohome: { name: 'Vicohome', color: '#28a745', icon: 'V' },
+        wyze: { name: 'Wyze', color: '#fd7e14', icon: 'W' },
+        tapo: { name: 'Tapo', color: '#6f42c1', icon: 'T' },
+        tuya: { name: 'Tuya', color: '#ffc107', icon: '🏠' },
+        ezviz: { name: 'Ezviz', color: '#dc3545', icon: '🛡️' },
+        vimtag: { name: 'Vimtag', color: '#17a2b8', icon: '📹' }
+    }[id];
+
+    if (!config) {
+        console.error('❌ No se encontró configuración para el plugin:', id);
+        return;
+    }
+
+    document.getElementById('plugin-settings-title').textContent = `Configurar ${config.name}`;
+    const iconEl = document.getElementById('plugin-settings-icon');
+    iconEl.textContent = config.icon;
+    iconEl.style.backgroundColor = config.color;
+    
+    document.getElementById('modal-plugin-settings').classList.add('open');
+}
+
+function closePluginModal() {
+    document.getElementById('modal-plugin-settings').classList.remove('open');
+}
+
+async function savePluginConfig() {
+    const user = document.getElementById('plugin-user').value;
+    const pass = document.getElementById('plugin-pass').value;
+    const extra = document.getElementById('plugin-extra').value;
+
+    toast(`Conectando plugin ${activePlugin}...`, 'info');
+
+    try {
+        const res = await fetch(`${API}/api/plugins/${activePlugin}/message`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'login',
+                payload: { user, pass, extra }
+            })
+        });
+        
+        if (res.ok) {
+            toast('Credenciales enviadas al plugin', 'success');
+            closePluginModal();
+        } else {
+            const err = await res.text();
+            toast(`Error: ${err}`, 'error');
+        }
+    } catch (e) {
+        toast(`Error de red: ${e.message}`, 'error');
+    }
+}
+
+function saveCodecSettings() {
+    const codec = document.getElementById('cfg-codec').value;
+    const lowLatency = document.getElementById('toggle-lowlatency').classList.contains('active');
+    
+    // Guardar en localStorage para persistencia en UI
+    lsSet('scryvex_codec', codec);
+    lsSet('scryvex_lowlatency', lowLatency);
+    
+    toast('Configuración de video actualizada', 'success');
 }

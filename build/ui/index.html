@@ -33,7 +33,7 @@
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon">
-      <svg viewBox="0 0 32 32" fill="none">
+      <svg aria-hidden="true" viewBox="0 0 32 32" fill="none">
         <circle cx="16" cy="16" r="14" stroke="url(#lg1)" stroke-width="2"/>
         <circle cx="16" cy="16" r="8" fill="url(#lg2)" opacity="0.8"/>
         <circle cx="16" cy="16" r="3" fill="#fff"/>
@@ -48,33 +48,37 @@
       </svg>
     </div>
     <span class="logo-text">Scryvex</span>
-    <span class="logo-version">v0.1.1</span>
+    <span class="logo-version">v1.0.0</span>
   </div>
 
   <nav class="sidebar-nav">
-    <a class="nav-item active" data-page="dashboard" onclick="showPage('dashboard',this)">
-      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
+    <a class="nav-item active" href="#" data-page="dashboard" onclick="showPage('dashboard',this)">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
       <span>Dashboard</span>
     </a>
-    <a class="nav-item" data-page="cameras" onclick="showPage('cameras',this)">
-      <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
+    <a class="nav-item" href="#" data-page="cameras" onclick="showPage('cameras',this)">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
       <span>Cámaras</span>
       <span class="nav-badge" id="cam-count">0</span>
     </a>
-    <a class="nav-item" data-page="discover" onclick="showPage('discover',this)">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+    <a class="nav-item" href="#" data-page="plugins" onclick="showPage('plugins',this)">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5c0-1.1-.9-2-2-2s-2 .9-2 2V5H5c-1.1 0-2 .9-2 2v4H1.5c-1.1 0-2 .9-2 2s.9 2 2 2H3v4c0 1.1.9 2 2 2h4v1.5c0 1.1.9 2 2 2s2-.9 2-2V19h4c1.1 0 2-.9 2-2v-4h1.5c1.1 0 2-.9 2-2s-.9-2-2-2z"/></svg>
+      <span>Plugins</span>
+    </a>
+    <a class="nav-item" href="#" data-page="discover" onclick="showPage('discover',this)">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
       <span>Descubrir</span>
     </a>
-    <a class="nav-item" data-page="homekit" onclick="showPage('homekit',this)">
-      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    <a class="nav-item" href="#" data-page="homekit" onclick="showPage('homekit',this)">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       <span>HomeKit</span>
     </a>
-    <a class="nav-item" data-page="settings" onclick="showPage('settings',this)">
-      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96a6.88 6.88 0 00-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.48.48 0 00.12.6l2.03 1.58c-.05.3-.07.62-.07.95 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.04.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+    <a class="nav-item" href="#" data-page="settings" onclick="showPage('settings',this)">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96a6.88 6.88 0 00-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.48.48 0 00.12.6l2.03 1.58c-.05.3-.07.62-.07.95 0 .32.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.37 1.04.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.57 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 00-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
       <span>Ajustes</span>
     </a>
-    <a class="nav-item admin-only" style="display:none" onclick="openUsersManager()">
-      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+    <a class="nav-item admin-only" href="#" style="display:none" onclick="openUsersManager()">
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
       <span>Usuarios</span>
     </a>
   </nav>
@@ -92,12 +96,12 @@
   <!-- HEADER -->
   <header class="topbar">
     <button class="menu-btn" onclick="toggleSidebar()">
-      <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
     </button>
     <h1 class="page-title" id="page-title">Dashboard</h1>
     <div class="topbar-actions">
       <button class="btn-glass" onclick="refresh()" title="Actualizar">
-        <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
       </button>
       <div class="system-time" id="sys-time"></div>
     </div>
@@ -107,28 +111,28 @@
   <section class="page active" id="page-dashboard">
     <div class="stats-grid">
       <div class="stat-card glass">
-        <div class="stat-icon blue"><svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg></div>
+        <div class="stat-icon blue"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg></div>
         <div class="stat-info">
           <span class="stat-val" id="stat-cams">0</span>
           <span class="stat-label">Cámaras activas</span>
         </div>
       </div>
       <div class="stat-card glass">
-        <div class="stat-icon purple"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
+        <div class="stat-icon purple"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
         <div class="stat-info">
           <span class="stat-val" id="stat-hk">0</span>
           <span class="stat-label">En HomeKit</span>
         </div>
       </div>
       <div class="stat-card glass">
-        <div class="stat-icon green"><svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg></div>
+        <div class="stat-icon green"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2c2.76-2.76 7.24-2.76 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg></div>
         <div class="stat-info">
           <span class="stat-val" id="stat-online">—</span>
           <span class="stat-label">Estado red</span>
         </div>
       </div>
       <div class="stat-card glass">
-        <div class="stat-icon orange"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
+        <div class="stat-icon orange"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg></div>
         <div class="stat-info">
           <span class="stat-val" id="stat-ver">0.1.1</span>
           <span class="stat-label">Versión</span>
@@ -175,9 +179,9 @@
     <div class="section-header"><h2>Vista rápida de cámaras</h2></div>
     <div class="cameras-grid" id="dash-cams">
       <div class="empty-state glass">
-        <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
         <p>No hay cámaras configuradas.</p>
-        <button class="btn-primary" onclick="showPage('cameras', document.querySelector('[data-page=cameras]'))">+ Agregar cámara</button>
+        <button class="btn-primary" onclick="showPage('cameras', document.querySelector('[data-page="cameras"]'))">+ Agregar cámara</button>
       </div>
     </div>
   </section>
@@ -190,10 +194,110 @@
     </div>
     <div class="cameras-list" id="cameras-list">
       <div class="empty-state glass">
-        <svg viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h12a1 1 0 001-1v-3.5l4 4v-11l-4 4z"/></svg>
         <p>Aún no has agregado cámaras.</p>
         <p class="hint">Vicohome, Tapo, Reolink, ONVIF, cualquier RTSP...</p>
         <button class="btn-primary" onclick="openAddCamera()">Agregar primera cámara</button>
+      </div>
+    </div>
+  </section>
+  
+  <!-- ── PAGE: PLUGINS ─────────────────────────────────────────── -->
+  <section class="page" id="page-plugins">
+    <div class="section-header">
+      <h2>Plugins de Marcas (Scryvex 1.0)</h2>
+      <p style="font-size:13px; color:var(--text3)">Configura tus cuentas para detección nativa y control total.</p>
+    </div>
+    <div class="plugins-grid" id="plugins-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap:20px; margin-top:20px;">
+      <!-- Ring Plugin -->
+      <div class="glass plugin-card" style="padding:24px; border-radius:20px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:#007bff; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">R</div>
+            <span style="font-weight:600; font-size:16px;">Ring</span>
+          </div>
+          <span class="badge" style="background:rgba(0,123,255,0.1); color:#007bff; font-size:11px; padding:4px 8px; border-radius:6px;">ACTIVO</span>
+        </div>
+        <p style="font-size:13px; color:var(--text2);">Soporte total para cámaras, timbres, luces y sirenas de Ring.</p>
+        <button class="btn-glass" onclick="openPluginSettings('ring')" style="width:100%; justify-content:center;">⚙️ Configurar</button>
+      </div>
+
+      <!-- Vicohome Plugin -->
+      <div class="glass plugin-card" style="padding:24px; border-radius:20px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:#28a745; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">V</div>
+            <span style="font-weight:600; font-size:16px;">Vicohome</span>
+          </div>
+          <span class="badge" style="background:rgba(40,167,69,0.1); color:#28a745; font-size:11px; padding:4px 8px; border-radius:6px;">ACTIVO</span>
+        </div>
+        <p style="font-size:13px; color:var(--text2);">Cámaras de batería, detección inteligente y visión nocturna.</p>
+        <button class="btn-glass" onclick="openPluginSettings('vicohome')" style="width:100%; justify-content:center;">⚙️ Configurar</button>
+      </div>
+
+      <!-- Wyze Plugin -->
+      <div class="glass plugin-card" style="padding:24px; border-radius:20px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:#fd7e14; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">W</div>
+            <span style="font-weight:600; font-size:16px;">Wyze</span>
+          </div>
+          <span class="badge" style="background:rgba(253,126,20,0.1); color:#fd7e14; font-size:11px; padding:4px 8px; border-radius:6px;">ACTIVO</span>
+        </div>
+        <p style="font-size:13px; color:var(--text2);">Integración directa sin firmware RTSP. Detección YOLO11.</p>
+        <button class="btn-glass" onclick="openPluginSettings('wyze')" style="width:100%; justify-content:center;">⚙️ Configurar</button>
+      </div>
+
+      <!-- Tapo Plugin -->
+      <div class="glass plugin-card" style="padding:24px; border-radius:20px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:#6f42c1; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">T</div>
+            <span style="font-weight:600; font-size:16px;">Tapo / TP-Link</span>
+          </div>
+          <span class="badge" style="background:rgba(111,66,193,0.1); color:#6f42c1; font-size:11px; padding:4px 8px; border-radius:6px;">ACTIVO</span>
+        </div>
+        <p style="font-size:13px; color:var(--text2);">Control de movimiento PTZ, sirena y privacidad nativa.</p>
+        <button class="btn-glass" onclick="openPluginSettings('tapo')" style="width:100%; justify-content:center;">⚙️ Configurar</button>
+      </div>
+
+      <!-- Ezviz Plugin -->
+      <div class="glass plugin-card" style="padding:24px; border-radius:20px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:#e83e8c; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">E</div>
+            <span style="font-weight:600; font-size:16px;">Ezviz</span>
+          </div>
+          <span class="badge" style="background:rgba(232,62,140,0.1); color:#e83e8c; font-size:11px; padding:4px 8px; border-radius:6px;">ACTIVO</span>
+        </div>
+        <p style="font-size:13px; color:var(--text2);">Soporte para cámaras Ezviz y Hikvision vía Cloud API.</p>
+        <button class="btn-glass" onclick="openPluginSettings('ezviz')" style="width:100%; justify-content:center;">⚙️ Configurar</button>
+      </div>
+
+      <!-- Tuya Plugin -->
+      <div class="glass plugin-card" style="padding:24px; border-radius:20px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:#ffc107; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">T</div>
+            <span style="font-weight:600; font-size:16px;">Tuya Smart</span>
+          </div>
+          <span class="badge" style="background:rgba(255,193,7,0.1); color:#ffc107; font-size:11px; padding:4px 8px; border-radius:6px;">ACTIVO</span>
+        </div>
+        <p style="font-size:13px; color:var(--text2);">Control de luces, sensores y cámaras de la plataforma Tuya.</p>
+        <button class="btn-glass" onclick="openPluginSettings('tuya')" style="width:100%; justify-content:center;">⚙️ Configurar</button>
+      </div>
+
+      <!-- Vimtag Plugin -->
+      <div class="glass plugin-card" style="padding:24px; border-radius:20px; display:flex; flex-direction:column; gap:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="width:40px; height:40px; background:#20c997; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold;">V</div>
+            <span style="font-weight:600; font-size:16px;">Vimtag</span>
+          </div>
+          <span class="badge" style="background:rgba(32,201,151,0.1); color:#20c997; font-size:11px; padding:4px 8px; border-radius:6px;">ACTIVO</span>
+        </div>
+        <p style="font-size:13px; color:var(--text2);">Cámaras Vimtag y Fujikam. Soporte PTZ y audio bidireccional.</p>
+        <button class="btn-glass" onclick="openPluginSettings('vimtag')" style="width:100%; justify-content:center;">⚙️ Configurar</button>
       </div>
     </div>
   </section>
@@ -256,6 +360,25 @@
   <section class="page" id="page-settings">
     <div class="section-header"><h2>Configuración</h2></div>
     <div class="settings-grid">
+
+      <div class="settings-card glass">
+        <h3>📹 Calidad de Video y Codecs</h3>
+        <div class="form-group">
+          <label>Codec de Video (Stream Principal)</label>
+          <select id="cfg-codec" class="glass-input">
+            <option value="h264">H.264 (Máxima Compatibilidad)</option>
+            <option value="h265">H.265 / HEVC (Máxima Calidad / Apple Nativo)</option>
+            <option value="auto" selected>Automático (Recomendado)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Modo de Baja Latencia (Zero-Lag)</label>
+          <div class="toggle active" id="toggle-lowlatency" onclick="this.classList.toggle('active')"><div class="toggle-knob"></div></div>
+        </div>
+        <p style="font-size:11px; color:var(--text3); margin-top:8px;">
+          ℹ️ H.265 consume menos ancho de banda pero requiere hardware moderno.
+        </p>
+      </div>
 
       <div class="settings-card glass">
         <h3>🌐 Zona horaria</h3>
@@ -351,6 +474,90 @@
         </div>
       </div>
 
+
+      <!-- ── PLUGIN MANUAL ────────────────────────────────────────── -->
+      <div class="settings-card glass">
+        <h3>🔌 Instalar Plugin Manual</h3>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">
+          Instala cualquier plugin desde npm, URL de repositorio Git o archivo .zip —
+          igual que Scrypted.
+        </p>
+        <div class="form-group">
+          <label>Fuente del plugin</label>
+          <select id="plugin-source-type" class="glass-input" onchange="updatePluginSourceUI()">
+            <option value="npm">📦 npm (ej: scryvex-plugin-amcrest)</option>
+            <option value="git">🔗 Git URL (GitHub / GitLab)</option>
+            <option value="zip">.zip / tarball</option>
+          </select>
+        </div>
+        <div class="form-group" id="plugin-source-npm">
+          <label>Nombre del paquete npm</label>
+          <input class="glass-input" id="plugin-npm-name" type="text" placeholder="scryvex-plugin-amcrest" />
+        </div>
+        <div class="form-group" id="plugin-source-git" style="display:none;">
+          <label>URL del repositorio</label>
+          <input class="glass-input" id="plugin-git-url" type="text" placeholder="https://github.com/usuario/mi-plugin" />
+        </div>
+        <div class="form-group" id="plugin-source-zip" style="display:none;">
+          <label>Archivo .zip / .tar.gz</label>
+          <input class="glass-input" id="plugin-zip-file" type="file" accept=".zip,.tar.gz,.tgz" />
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-primary" style="flex:1;font-size:13px;padding:9px;" onclick="installManualPlugin()">⬇️ Instalar</button>
+          <button class="btn-glass" style="font-size:13px;padding:9px 14px;" onclick="showPage('plugins',document.querySelector(&#39;[data-page=&quot;plugins&quot;]&#39;))">Ver plugins</button>
+        </div>
+        <div id="plugin-install-log" style="display:none;margin-top:10px;background:var(--bg2);border-radius:8px;padding:10px;font-size:11px;font-family:monospace;color:var(--text2);max-height:100px;overflow-y:auto;"></div>
+      </div>
+
+      <!-- ── BACKUP / RESTORE ─────────────────────────────────────── -->
+      <div class="settings-card glass">
+        <h3>💾 Copia de Seguridad</h3>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">
+          Exporta toda la configuración (cámaras, plugins, claves, ajustes) en un
+          archivo <code style="font-size:11px;">.scryvex-backup</code> cifrado.
+          Restaura en cualquier momento sin reinstalar.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-primary" style="flex:1;min-width:120px;font-size:13px;padding:9px;" onclick="exportBackup()">
+            ⬆️ Exportar backup
+          </button>
+          <label class="btn-glass" style="flex:1;min-width:120px;font-size:13px;padding:9px;text-align:center;cursor:pointer;">
+            ⬇️ Restaurar backup
+            <input type="file" id="restore-file" accept=".scryvex-backup,.json" style="display:none;" onchange="importBackup(this)" />
+          </label>
+        </div>
+        <div id="backup-status" style="display:none;font-size:11px;color:var(--text3);margin-top:10px;text-align:center;"></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
+          <p style="font-size:11px;color:var(--text3);margin-bottom:8px;">Últimos backups automáticos:</p>
+          <div id="backup-list" style="font-size:11px;color:var(--text3);">Cargando...</div>
+        </div>
+      </div>
+
+      <!-- ── FACTORY RESET ─────────────────────────────────────────── -->
+      <div class="settings-card glass" style="border:1px solid oklch(from var(--error, #dc3545) l c h / 0.25);">
+        <h3 style="color:var(--error,#dc3545);">⚠️ Restablecer de fábrica</h3>
+        <p style="font-size:12px;color:var(--text3);margin-bottom:12px;">
+          Elimina <strong>todas</strong> las cámaras, plugins instalados, credenciales y
+          configuraciones. Scryvex queda como recién instalado <em>sin necesidad de
+          reinstalar</em>.
+        </p>
+        <div class="form-group">
+          <label style="font-size:12px;">Escribe <code>RESETEAR</code> para confirmar</label>
+          <input class="glass-input" id="reset-confirm-text" type="text" placeholder="RESETEAR" />
+        </div>
+        <div style="display:flex;gap:8px;margin-top:4px;">
+          <button class="btn-glass" style="flex:1;font-size:13px;padding:9px;" onclick="factoryReset('partial')" id="btn-reset-soft">
+            🔄 Limpiar config
+          </button>
+          <button style="flex:1;font-size:13px;padding:9px;border-radius:8px;border:1px solid var(--error,#dc3545);background:transparent;color:var(--error,#dc3545);cursor:pointer;transition:all .18s;" onclick="factoryReset('full')" id="btn-reset-hard">
+            💣 Reset total
+          </button>
+        </div>
+        <p style="font-size:10px;color:var(--text3);margin-top:8px;text-align:center;">
+          Se recomienda hacer un backup antes de resetear.
+        </p>
+      </div>
+
     </div>
     <div class="settings-actions">
       <button class="btn-primary" onclick="saveSettings()">💾 Guardar configuración</button>
@@ -379,8 +586,18 @@
           <input class="glass-input" id="cam-name" type="text" placeholder="" />
         </div>
         <div class="form-group">
-          <label>URL RTSP</label>
-          <input class="glass-input" id="cam-url" type="text" placeholder="" />
+          <label>URL RTSP (ej: rtsp://192.168.1.10/stream)</label>
+          <input class="glass-input" id="cam-url" type="text" placeholder="rtsp://..." />
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <div class="form-group">
+            <label>Usuario (opcional)</label>
+            <input class="glass-input" id="cam-user" type="text" placeholder="admin" />
+          </div>
+          <div class="form-group">
+            <label>Contraseña (opcional)</label>
+            <input class="glass-input" id="cam-pass" type="password" placeholder="••••" />
+          </div>
         </div>
         <div class="form-group toggle-group" style="margin-top: 10px;">
           <label>Activar detección AI</label>
@@ -466,10 +683,50 @@
   </div>
 </div>
 
+<!-- ── MODAL: PLUGIN SETTINGS ────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-plugin-settings" onclick="closePluginModal()">
+  <div class="modal glass" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div id="plugin-settings-icon" style="width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:white; font-size:20px;"></div>
+        <div>
+          <h2 id="plugin-settings-title" style="margin:0">Configuración</h2>
+          <span style="font-size:12px; opacity:0.6">Scryvex 1.0 Plugin</span>
+        </div>
+      </div>
+      <button class="btn-close" onclick="closePluginModal()">✕</button>
+    </div>
+    <div class="modal-body" style="padding-top:20px;">
+      <div id="plugin-settings-form" style="display:flex; flex-direction:column; gap:16px;">
+        <div class="form-group">
+          <label>Usuario / Email</label>
+          <input class="glass-input" id="plugin-user" type="text" placeholder="ejemplo@correo.com" />
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input class="glass-input" id="plugin-pass" type="password" placeholder="••••••••" />
+        </div>
+        <div class="form-group" id="plugin-extra-field" style="display:none">
+          <label id="plugin-extra-label">Token / 2FA</label>
+          <input class="glass-input" id="plugin-extra" type="text" />
+        </div>
+        <div class="plugin-status-info glass" style="padding:12px; font-size:12px; color:var(--text3); border:1.5px solid rgba(255,255,255,0.05);">
+          ℹ️ Esta información se envía de forma segura al subproceso de Node.js local.
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="closePluginModal()">Cerrar</button>
+      <button class="btn-primary" onclick="savePluginConfig()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">🔓 Conectar Plugin</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── TOAST ──────────────────────────────────────────────────── -->
 <div class="toast" id="toast"></div>
 
-<script src="app.js?v=3"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="app.js?v=1.0.0-final-debug-2"></script>
 </body>
 </html>
 </div><!-- end app-shell -->

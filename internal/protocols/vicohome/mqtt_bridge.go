@@ -15,7 +15,7 @@ import (
 	"log"
 	"time"
 
-	mqtt "github.com/cambrige/cambrige/internal/protocols/mqtt"
+	mqtt "github.com/Chrisalvir1/Scryvex/internal/protocols/mqtt"
 )
 
 // HADiscoveryConfig genera los mensajes de Home Assistant MQTT Discovery
@@ -38,14 +38,14 @@ func (h *HADiscoveryConfig) Publish() error {
 	camConfig := map[string]interface{}{
 		"name":               h.name,
 		"unique_id":          "vicohome_" + slug,
-		"topic":              fmt.Sprintf("cambrige/vicohome/%s/snapshot", slug),
+		"topic":              fmt.Sprintf("scryvex/vicohome/%s/snapshot", slug),
 		"image_encoding":     "b64",
 		"device": map[string]interface{}{
 			"identifiers":  []string{"vicohome_" + slug},
 			"name":         h.name,
 			"manufacturer": "VicoHome",
 			"model":        "VicoHome Camera",
-			"via_device":   "cambrige_hub",
+			"via_device":   "scryvex_hub",
 		},
 	}
 	configTopic := fmt.Sprintf("homeassistant/camera/vicohome_%s/config", slug)
@@ -59,7 +59,7 @@ func (h *HADiscoveryConfig) Publish() error {
 		"name":          h.name + " Motion",
 		"unique_id":     "vicohome_motion_" + slug,
 		"device_class":  "motion",
-		"state_topic":   fmt.Sprintf("cambrige/vicohome/%s/motion", slug),
+		"state_topic":   fmt.Sprintf("scryvex/vicohome/%s/motion", slug),
 		"payload_on":    "ON",
 		"payload_off":   "OFF",
 		"off_delay":     30, // auto-off después de 30s
@@ -77,7 +77,7 @@ func (h *HADiscoveryConfig) Publish() error {
 	eventConfig := map[string]interface{}{
 		"name":        h.name + " Evento",
 		"unique_id":   "vicohome_event_" + slug,
-		"state_topic": fmt.Sprintf("cambrige/vicohome/%s/event_type", slug),
+		"state_topic": fmt.Sprintf("scryvex/vicohome/%s/event_type", slug),
 		"icon":        "mdi:cctv",
 		"device": map[string]interface{}{
 			"identifiers": []string{"vicohome_" + slug},
@@ -94,7 +94,7 @@ func (h *HADiscoveryConfig) Publish() error {
 		"name":          h.name + " Batería",
 		"unique_id":     "vicohome_battery_" + slug,
 		"device_class":  "battery",
-		"state_topic":   fmt.Sprintf("cambrige/vicohome/%s/battery", slug),
+		"state_topic":   fmt.Sprintf("scryvex/vicohome/%s/battery", slug),
 		"unit_of_measurement": "%",
 		"device": map[string]interface{}{
 			"identifiers": []string{"vicohome_" + slug},
@@ -111,7 +111,7 @@ func (h *HADiscoveryConfig) Publish() error {
 // SendEvent publica un evento (motion, snapshot, tipo) en MQTT
 func (h *HADiscoveryConfig) SendEvent(eventType string, snapJPG []byte, battery int) {
 	slug := sanitizeID(h.cameraID)
-	base := fmt.Sprintf("cambrige/vicohome/%s", slug)
+	base := fmt.Sprintf("scryvex/vicohome/%s", slug)
 
 	// Snapshot en base64 (HA lo muestra directamente)
 	if len(snapJPG) > 0 {

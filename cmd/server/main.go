@@ -59,7 +59,7 @@ func main() {
 	go func() {
 		pluginsToStart := []string{"ring", "vicohome", "tuya", "ezviz", "wyze", "tapo", "vimtag", "ai"}
 		for _, p := range pluginsToStart {
-			script := "/Users/chrisalvir/Desktop/Scryvex/plugins/" + p + "/index.js"
+			script := "./plugins/" + p + "/index.js"
 			if _, err := os.Stat(script); err == nil {
 				pluginManager.StartPlugin(p, script)
 			}
@@ -448,7 +448,7 @@ func handleRingAuth() http.HandlerFunc {
 
 func startMatterBridge() {
 	log.Println("🚀 Iniciando Matter Bridge...")
-	cmd := exec.Command("/Users/chrisalvir/.homebrew/bin/node", "/Users/chrisalvir/Desktop/Scryvex/matter-bridge/bridge.js")
+	cmd := exec.Command("node", "./matter-bridge/bridge.js")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Start(); err != nil {

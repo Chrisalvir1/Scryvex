@@ -83,7 +83,7 @@ func (s *Scanner) wsDiscovery() {
             xmlns:d="http://schemas.xmlsoap.org/ws/2005/04/discovery"
             xmlns:dn="http://www.onvif.org/ver10/network/wsdl">
   <e:Header>
-    <w:MessageID>uuid:cambrige-probe-001</w:MessageID>
+    <w:MessageID>uuid:scryvex-probe-001</w:MessageID>
     <w:To>urn:schemas-xmlsoap-org:ws:2005:04:discovery</w:To>
     <w:Action>http://schemas.xmlsoap.org/ws/2005/04/discovery/Probe</w:Action>
   </e:Header>

@@ -21,7 +21,7 @@
   --radius-sm:10px;
   --transition:0.25s cubic-bezier(.4,0,.2,1);
 }
-html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;line-height:1.6;overflow:hidden}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:15px;line-height:1.6;overflow-x:hidden}
 
 /* ── Background mesh ────────────────────────────────────────── */
 body::before{
@@ -87,7 +87,7 @@ body::before{
 .topbar{
   display:flex;align-items:center;gap:16px;padding:16px 28px;
   background:rgba(8,12,20,0.7);border-bottom:1px solid var(--glass-border);
-  backdrop-filter:blur(12px);sticky:top;position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(12px);position:sticky;top:0;z-index:50;
 }
 .menu-btn{display:none;background:none;border:none;color:var(--text2);cursor:pointer;padding:4px}
 .menu-btn svg{width:24px;height:24px;fill:currentColor}
@@ -174,7 +174,7 @@ body::before{
 .qr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
 
 /* ── Settings ────────────────────────────────────────────────── */
-.settings-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.settings-grid{display:grid;grid-template-columns:repeat(2, 1fr));gap:16px}
 .settings-card{padding:24px;display:flex;flex-direction:column;gap:14px}
 .settings-card h3{font-size:15px;font-weight:600;margin-bottom:4px}
 .form-group{display:flex;flex-direction:column;gap:6px}
@@ -259,4 +259,25 @@ body::before{
   .stats-grid{grid-template-columns:1fr}
   .page{padding:16px}
   .topbar{padding:12px 16px}
+}
+/* ── Animations ──────────────────────────────────────────────── */
+.loader {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Alias para compatibilidad con código anterior */
+.loading-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
