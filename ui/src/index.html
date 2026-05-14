@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="style.css" />
   <style>
     .brand-card {
-      padding: 10px 4px;
+      padding: 12px 4px 8px;
       border-radius: 12px;
       border: 1.5px solid rgba(255,255,255,0.1);
       text-align: center;
@@ -21,7 +21,7 @@
     }
     .brand-card:hover { border-color: rgba(102,126,234,0.6); background: rgba(102,126,234,0.1); transform: translateY(-2px); }
     .brand-card.selected { border-color: #667eea; background: rgba(102,126,234,0.2); }
-    .brand-icon { font-size: 22px; margin-bottom: 4px; }
+    .brand-icon { width: 36px; height: 36px; margin: 0 auto 6px; display: block; object-fit: contain; border-radius: 8px; }
     .brand-label { font-size: 10px; color: var(--text2); font-weight: 600; line-height: 1.2; }
   </style>
 </head>
@@ -379,28 +379,36 @@
           <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px;">Selecciona tu plataforma</div>
           <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;" id="brand-cards">
             <div onclick="selectBrandPlugin('Tuya',this)" data-brand="Tuya" class="brand-card">
-              <div class="brand-icon">🏠</div><div class="brand-label">Tuya / Smart Life</div>
+              <img class="brand-icon" src="https://logo.clearbit.com/tuya.com" onerror="this.src='https://img.icons8.com/color/48/smart-home.png'" alt="Tuya">
+              <div class="brand-label">Tuya / Smart Life</div>
             </div>
             <div onclick="selectBrandPlugin('Vicohome',this)" data-brand="Vicohome" class="brand-card">
-              <div class="brand-icon">📹</div><div class="brand-label">Vicohome</div>
+              <img class="brand-icon" src="https://logo.clearbit.com/vicohome.io" onerror="this.src='https://img.icons8.com/color/48/video-camera.png'" alt="Vicohome">
+              <div class="brand-label">Vicohome</div>
             </div>
             <div onclick="selectBrandPlugin('Ring',this)" data-brand="Ring" class="brand-card">
-              <div class="brand-icon">🔔</div><div class="brand-label">Ring</div>
+              <img class="brand-icon" src="https://logo.clearbit.com/ring.com" onerror="this.src='https://img.icons8.com/color/48/ring-doorbell.png'" alt="Ring">
+              <div class="brand-label">Ring</div>
             </div>
             <div onclick="selectBrandPlugin('Google Nest',this)" data-brand="Google Nest" class="brand-card">
-              <div class="brand-icon">🌐</div><div class="brand-label">Google Nest</div>
+              <img class="brand-icon" src="https://logo.clearbit.com/nest.com" onerror="this.src='https://img.icons8.com/color/48/google-home.png'" alt="Google Nest">
+              <div class="brand-label">Google Nest</div>
             </div>
             <div onclick="selectBrandPlugin('Wyze',this)" data-brand="Wyze" class="brand-card">
-              <div class="brand-icon">⚡</div><div class="brand-label">Wyze</div>
+              <img class="brand-icon" src="https://logo.clearbit.com/wyze.com" onerror="this.src='https://img.icons8.com/color/48/camera.png'" alt="Wyze">
+              <div class="brand-label">Wyze</div>
             </div>
             <div onclick="selectBrandPlugin('Tapo',this)" data-brand="Tapo" class="brand-card">
-              <div class="brand-icon">🔵</div><div class="brand-label">Tapo</div>
+              <img class="brand-icon" src="https://logo.clearbit.com/tapo.com" onerror="this.src='https://img.icons8.com/color/48/tp-link.png'" alt="Tapo">
+              <div class="brand-label">Tapo</div>
             </div>
             <div onclick="selectBrandPlugin('Ezviz',this)" data-brand="Ezviz" class="brand-card">
-              <div class="brand-icon">👁️</div><div class="brand-label">Ezviz</div>
+              <img class="brand-icon" src="https://logo.clearbit.com/ezviz.com" onerror="this.src='https://img.icons8.com/color/48/security-camera.png'" alt="Ezviz">
+              <div class="brand-label">Ezviz</div>
             </div>
             <div onclick="selectBrandPlugin('Aqara',this)" data-brand="Aqara" class="brand-card">
-              <div class="brand-icon">🌿</div><div class="brand-label">Aqara</div>
+              <img class="brand-icon" src="https://logo.clearbit.com/aqara.com" onerror="this.src='https://img.icons8.com/color/48/leaf.png'" alt="Aqara">
+              <div class="brand-label">Aqara</div>
             </div>
           </div>
         </div>

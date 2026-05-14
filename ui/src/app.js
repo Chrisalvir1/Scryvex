@@ -249,7 +249,7 @@ function saveNewCamera(cam) {
 // ── Brand Plugin System ────────────────────────────────────────
 const BRAND_PLUGINS = {
   'Tuya': {
-    icon: '🏠', name: 'Tuya / Smart Life',
+    logo: 'https://logo.clearbit.com/tuya.com', name: 'Tuya / Smart Life',
     desc: 'Usa tu cuenta de Tuya Smart o Smart Life. Cubre Tuya, Vicohome y cientos de marcas.',
     fields: [
       { id: 'cloud-user', label: 'Email', type: 'email', ph: 'tu@email.com' },
@@ -260,7 +260,7 @@ const BRAND_PLUGINS = {
     api: 'tuya',
   },
   'Vicohome': {
-    icon: '📹', name: 'Vicohome',
+    logo: 'https://logo.clearbit.com/vicohome.io', name: 'Vicohome',
     desc: 'Vicohome usa servidores Tuya. Inicia sesión con tu cuenta de la app Vicohome.',
     fields: [
       { id: 'cloud-user', label: 'Email de Vicohome', type: 'email', ph: 'tu@email.com' },
@@ -270,7 +270,7 @@ const BRAND_PLUGINS = {
     api: 'vicohome',
   },
   'Ring': {
-    icon: '🔔', name: 'Ring (Amazon)',
+    logo: 'https://logo.clearbit.com/ring.com', name: 'Ring (Amazon)',
     desc: 'Importa doorbells y cámaras Ring con tu cuenta de Amazon.',
     fields: [
       { id: 'cloud-user', label: 'Email de Ring', type: 'email', ph: 'tu@email.com' },
@@ -281,7 +281,7 @@ const BRAND_PLUGINS = {
     api: 'ring',
   },
   'Tapo': {
-    icon: '🔵', name: 'Tapo / TP-Link',
+    logo: 'https://logo.clearbit.com/tapo.com', name: 'Tapo / TP-Link',
     desc: 'Importa cámaras Tapo C120, C400, C420 y más con tu cuenta TP-Link.',
     fields: [
       { id: 'cloud-user', label: 'Email de TP-Link', type: 'email', ph: 'tu@email.com' },
@@ -291,7 +291,7 @@ const BRAND_PLUGINS = {
     api: 'tapo',
   },
   'Ezviz': {
-    icon: '👁️', name: 'Ezviz (Hikvision)',
+    logo: 'https://logo.clearbit.com/ezviz.com', name: 'Ezviz (Hikvision)',
     desc: 'Importa cámaras Ezviz con tu cuenta de la app.',
     fields: [
       { id: 'cloud-user', label: 'Email de Ezviz', type: 'email', ph: 'tu@email.com' },
@@ -301,7 +301,7 @@ const BRAND_PLUGINS = {
     api: 'ezviz',
   },
   'Wyze': {
-    icon: '⚡', name: 'Wyze',
+    logo: 'https://logo.clearbit.com/wyze.com', name: 'Wyze',
     desc: 'Conecta cámaras Wyze Cam con tu cuenta Wyze.',
     fields: [
       { id: 'cloud-user', label: 'Email de Wyze', type: 'email', ph: 'tu@email.com' },
@@ -312,7 +312,7 @@ const BRAND_PLUGINS = {
     api: 'wyze',
   },
   'Google Nest': {
-    icon: '🌐', name: 'Google Nest',
+    logo: 'https://logo.clearbit.com/nest.com', name: 'Google Nest',
     desc: 'Conecta cámaras Nest vía Google Device Access API.',
     fields: [
       { id: 'cloud-project', label: 'Project ID', type: 'text', ph: 'enterprise/abc123...' },
@@ -322,7 +322,7 @@ const BRAND_PLUGINS = {
     api: 'nest',
   },
   'Aqara': {
-    icon: '🌿', name: 'Aqara',
+    logo: 'https://logo.clearbit.com/aqara.com', name: 'Aqara',
     desc: 'Importa cámaras y hubs Aqara G3, G2H, E1 con tu cuenta de la app.',
     fields: [
       { id: 'cloud-user', label: 'Email de Aqara', type: 'email', ph: 'tu@email.com' },
@@ -344,7 +344,7 @@ function selectBrandPlugin(brand, el) {
   document.querySelectorAll('.brand-card').forEach(c => c.classList.remove('selected'));
   if (el) el.classList.add('selected');
 
-  document.getElementById('brand-plugin-icon').textContent = plugin.icon;
+  document.getElementById('brand-plugin-icon').innerHTML = `<img src="${plugin.logo}" style="width:40px;height:40px;object-fit:contain;border-radius:8px;" onerror="this.style.display='none'" alt="${plugin.name}">`;
   document.getElementById('brand-plugin-name').textContent = plugin.name;
   document.getElementById('brand-plugin-desc').textContent = plugin.desc;
   document.getElementById('brand-login-note').innerHTML = plugin.note;
@@ -389,7 +389,7 @@ async function fetchCloudCameras() {
   const resDiv = document.getElementById('vico-results');
   resDiv.style.display = 'flex';
   resDiv.innerHTML = `<div style="text-align:center;padding:20px;width:100%;">
-    <div style="font-size:28px;margin-bottom:8px;">${plugin.icon}</div>
+    <img src="${plugin.logo}" style="width:48px;height:48px;object-fit:contain;border-radius:10px;margin-bottom:8px;" alt="${plugin.name}">
     <div style="font-weight:600;margin-bottom:4px;">Conectando con ${plugin.name}...</div>
     <div style="font-size:12px;color:var(--text3);">Autenticando y buscando tus cámaras</div>
   </div>`;
@@ -403,7 +403,7 @@ async function fetchCloudCameras() {
       });
       const data = await resp.json();
       if (data.cameras && data.cameras.length > 0) {
-        showCloudResults(brand, data.cameras, plugin.icon);
+        showCloudResults(brand, data.cameras, plugin.logo);
         toast(`✅ ${data.cameras.length} cámara(s) encontradas`, 'success');
       } else {
         throw new Error('no_cameras');
@@ -422,13 +422,13 @@ async function fetchCloudCameras() {
         { id: `${brand.toLowerCase()}-01`, name: `${brand} Frontal`, type: 'cloud', brand, stream_url: `rtsp://stream.local/01`, ip: '192.168.1.100', mac: '', battery: 90, is_native_rtsp: true },
         { id: `${brand.toLowerCase()}-02`, name: `${brand} Trasero`, type: 'cloud', brand, stream_url: `rtsp://stream.local/02`, ip: '192.168.1.101', mac: '', battery: 55, is_native_rtsp: false },
       ];
-      showCloudResults(brand, mockCams, plugin.icon);
+      showCloudResults(brand, mockCams, plugin.logo);
       toast(`✅ ${mockCams.length} cámaras encontradas en ${plugin.name}`, 'success');
     }, 1800);
   }
 }
 
-function showCloudResults(brand, cams, icon) {
+function showCloudResults(brand, cams, logo) {
   const resDiv = document.getElementById('vico-results');
   resDiv.style.display = 'flex';
   resDiv.style.flexDirection = 'column';
@@ -436,7 +436,7 @@ function showCloudResults(brand, cams, icon) {
     cams.map(c => `
     <div class="glass" style="padding:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
       <div style="display:flex;align-items:center;gap:10px;">
-        <span style="font-size:26px;">${icon}</span>
+        <img src="${logo}" style="width:32px;height:32px;object-fit:contain;border-radius:6px;" onerror="this.style.display='none'" alt="${brand}">
         <div>
           <div style="font-weight:600;font-size:14px;">${c.name}</div>
           <div style="font-size:11px;color:var(--text3);">${c.ip || 'Vía nube'} ${c.battery ? '· 🔋' + c.battery + '%' : ''}</div>
