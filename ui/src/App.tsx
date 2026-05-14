@@ -5,7 +5,6 @@ function App() {
   const [status, setStatus] = useState<any>(null)
 
   useEffect(() => {
-    // Intentamos conectar con el motor Go
     const fetchStatus = () => {
       fetch('http://localhost:1994/api/status')
         .then(res => res.json())
@@ -38,14 +37,14 @@ function App() {
       <main className="dashboard-content">
         <header className="glass top-nav">
           <div className="header-left">
-            <h1>Dashboard</h1>
-            <p className="subtitle">Welcome to Scryvex v2.0</p>
+            <h1>System Overview</h1>
+            <p className="subtitle">Scryvex v2.0 • Pro Surveillance</p>
           </div>
           <div className="system-status">
             {status ? (
               <div className="status-indicator online">
                 <span className="pulse"></span>
-                CORE ONLINE v{status.version}
+                CORE ONLINE
               </div>
             ) : (
               <div className="status-indicator offline">
@@ -58,34 +57,40 @@ function App() {
         <section className="grid">
           <div className="glass card hero">
             <div className="card-header">
-              <h3>Live Monitoring</h3>
-              <span className="badge">REAL-TIME</span>
+              <h3>Live Stream</h3>
+              <span className="badge">AUTO-DETECT</span>
             </div>
             <div className="empty-state">
               <div className="icon">📹</div>
-              <p>No cameras configured</p>
-              <button className="btn-secondary">Add First Device</button>
+              <p>No active video streams</p>
+              <button className="btn-secondary">Setup Camera</button>
             </div>
           </div>
           
           <div className="glass card stats">
-            <h3>System Health</h3>
+            <h3>Resources</h3>
             <div className="stat-row">
-              <span>CPU Usage</span>
-              <div className="progress-bar"><div className="fill" style={{width: '12%'}}></div></div>
+              <div className="stat-label">
+                <span>CPU Load</span>
+                <span>8%</span>
+              </div>
+              <div className="progress-bar"><div className="fill" style={{width: '8%'}}></div></div>
             </div>
             <div className="stat-row">
-              <span>Memory</span>
-              <div className="progress-bar"><div className="fill" style={{width: '24%'}}></div></div>
+              <div className="stat-label">
+                <span>Memory</span>
+                <span>12%</span>
+              </div>
+              <div className="progress-bar"><div className="fill" style={{width: '12%'}}></div></div>
             </div>
           </div>
 
           <div className="glass card actions">
-            <h3>Quick Actions</h3>
+            <h3>Operations</h3>
             <div className="action-grid">
-              <button className="glass-btn">Capture</button>
-              <button className="glass-btn">Record</button>
-              <button className="glass-btn">Analyze</button>
+              <button className="glass-btn">Snapshot</button>
+              <button className="glass-btn">Scan</button>
+              <button className="glass-btn">Logs</button>
             </div>
           </div>
         </section>

@@ -4,8 +4,9 @@
   font-weight: 400;
 
   color-scheme: dark;
-  color: rgba(255, 255, 255, 0.87);
-  background: radial-gradient(circle at top left, #1a1a2e, #16213e, #0f3460);
+  color: rgba(255, 255, 255, 0.95);
+  /* Fondo mucho más oscuro y profundo */
+  background: #050508;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -20,19 +21,20 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow: hidden;
+  background: #050508;
 }
 
 #root {
   width: 100%;
 }
 
-/* Liquid Glass Utilities */
+/* Liquid Glass Utilities - Más oscuros y legibles */
 .glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
+  background: rgba(15, 15, 25, 0.7); /* Vidrio más oscuro */
+  backdrop-filter: blur(25px) saturate(150%);
+  -webkit-backdrop-filter: blur(25px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
 }
 
 .liquid-bg {
@@ -42,28 +44,31 @@ body {
   width: 100vw;
   height: 100vh;
   z-index: -1;
-  background: linear-gradient(45deg, #0f3460, #16213e, #1a1a2e);
+  background: radial-gradient(circle at top right, #0a0a14, #050508);
 }
 
+/* Blobs muy sutiles para no molestar la vista */
 .blob {
   position: absolute;
-  width: 500px;
-  height: 500px;
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  filter: blur(80px);
+  width: 600px;
+  height: 600px;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  filter: blur(120px);
   border-radius: 50%;
   z-index: -1;
-  animation: move 20s infinite alternate;
+  opacity: 0.15; /* Bajado drásticamente la intensidad */
+  animation: move 25s infinite alternate ease-in-out;
 }
 
 .blob-2 {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  right: 0;
-  bottom: 0;
-  animation-delay: -5s;
+  background: linear-gradient(135deg, #4c1d95 0%, #7c3aed 100%);
+  right: -100px;
+  bottom: -100px;
+  opacity: 0.1; /* Muy tenue */
+  animation-delay: -7s;
 }
 
 @keyframes move {
-  from { transform: translate(-10%, -10%); }
-  to { transform: translate(20%, 20%); }
+  from { transform: translate(-5%, -5%) scale(1); }
+  to { transform: translate(10%, 10%) scale(1.1); }
 }
