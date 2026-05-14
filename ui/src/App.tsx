@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import './App.css'
+import './Modal.css'
 
 function App() {
   const [status, setStatus] = useState<any>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [cameras, setCameras] = useState<any[]>([])
+  const [newCam, setNewCam] = useState({ name: '', url: '', type: 'rtsp' })
 
   useEffect(() => {
     const fetchStatus = () => {
@@ -11,11 +15,38 @@ function App() {
         .then(data => setStatus(data))
         .catch(err => setStatus(null))
     }
+
+    const fetchCameras = () => {
+      fetch('http://localhost:1994/api/cameras')
+        .then(res => res.json())
+        .then(data => setCameras(data || []))
+        .catch(err => console.error(err))
+    }
     
     fetchStatus()
+    fetchCameras()
     const interval = setInterval(fetchStatus, 5000)
     return () => clearInterval(interval)
   }, [])
+
+  const handleAddCamera = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const res = await fetch('http://localhost:1994/api/cameras', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCam)
+      })
+      if (res.ok) {
+        setShowAddModal(false)
+        setNewCam({ name: '', url: '', type: 'rtsp' })
+        // Refresh list
+        fetch('http://localhost:1994/api/cameras').then(r => r.json()).then(d => setCameras(d))
+      }
+    } catch (err) {
+      alert('Error connecting to backend')
+    }
+  }
 
   return (
     <div className="container">
@@ -28,9 +59,9 @@ function App() {
         <div className="logo">SCRYVEX</div>
         <ul className="nav-links">
           <li className="active">Dashboard</li>
-          <li>Cameras</li>
-          <li>Events</li>
-          <li>Settings</li>
+          <li onClick={() => alert('Coming soon')}>Cameras</li>
+          <li onClick={() => alert('Coming soon')}>Events</li>
+          <li onClick={() => alert('Coming soon')}>Settings</li>
         </ul>
       </nav>
 
@@ -60,11 +91,24 @@ function App() {
               <h3>Live Stream</h3>
               <span className="badge">AUTO-DETECT</span>
             </div>
-            <div className="empty-state">
-              <div className="icon">📹</div>
-              <p>No active video streams</p>
-              <button className="btn-secondary">Setup Camera</button>
-            </div>
+            
+            {cameras.length === 0 ? (
+              <div className="empty-state">
+                <div className="icon">📹</div>
+                <p>No active video streams</p>
+                <button className="btn-secondary" onClick={() => setShowAddModal(true)}>Setup Camera</button>
+              </div>
+            ) : (
+              <div className="camera-grid">
+                {cameras.map((cam, idx) => (
+                  <div key={idx} className="camera-item glass">
+                    <div className="cam-placeholder">
+                      <span>{cam.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="glass card stats">
@@ -88,13 +132,47 @@ function App() {
           <div className="glass card actions">
             <h3>Operations</h3>
             <div className="action-grid">
-              <button className="glass-btn">Snapshot</button>
-              <button className="glass-btn">Scan</button>
-              <button className="glass-btn">Logs</button>
+              <button className="glass-btn" onClick={() => alert('Taking Snapshot...')}>Snapshot</button>
+              <button className="glass-btn" onClick={() => alert('Scanning Network...')}>Scan</button>
+              <button className="glass-btn" onClick={() => window.open('http://localhost:1994/api/status')}>Logs</button>
             </div>
           </div>
         </section>
       </main>
+
+      {showAddModal && (
+        <div className="modal-overlay">
+          <div className="glass modal-content">
+            <h2>Add New Camera</h2>
+            <form onSubmit={handleAddCamera}>
+              <div className="form-group">
+                <label>Camera Name</label>
+                <input 
+                  type="text" 
+                  value={newCam.name} 
+                  onChange={e => setNewCam({...newCam, name: e.target.value})}
+                  placeholder="Front Door"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Stream URL (RTSP)</label>
+                <input 
+                  type="text" 
+                  value={newCam.url} 
+                  onChange={e => setNewCam({...newCam, url: e.target.value})}
+                  placeholder="rtsp://admin:password@ip:554/stream"
+                  required
+                />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-ghost" onClick={() => setShowAddModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Connect Device</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
