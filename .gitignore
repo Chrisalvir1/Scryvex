@@ -4,3 +4,10 @@ node_modules/
 dist/
 *.log
 .DS_Store
+
+# Variables de entorno — nunca subir al repo
+.env
+
+# Binarios compilados
+scryvex-server
+scryvex

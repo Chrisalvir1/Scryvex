@@ -10,7 +10,7 @@ function App() {
   const [systemInfo, setSystemInfo] = useState({ cpu: 0, memory: 0 })
   const [showAddModal, setShowAddModal] = useState(false)
   const [cameras, setCameras] = useState<any[]>([])
-  const [newCam, setNewCam] = useState({ name: '', url: '', type: 'rtsp', username: '', password: '' })
+  const [newCam, setNewCam] = useState({ name: '', url: '', username: '', password: '' })
   const [currentView, setCurrentView] = useState('dashboard')
   const [selectedCam, setSelectedCam] = useState<any>(null)
 
@@ -34,10 +34,12 @@ function App() {
         const sysData = await sysRes.json()
         setSystemInfo(sysData)
       } catch (e) { console.error(e) }
+
+      // También refrescar lista de cámaras en cada ciclo
+      fetchCameras()
     }
-    
+
     fetchData()
-    fetchCameras()
     const interval = setInterval(fetchData, 3000)
     return () => clearInterval(interval)
   }, [])
@@ -53,19 +55,25 @@ function App() {
         }
       }
 
+      const hasAuth = !!(newCam.username && newCam.password)
+
       const res = await fetch('http://localhost:1994/api/cameras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...newCam, url: finalUrl })
+        body: JSON.stringify({
+          name: newCam.name,
+          url: finalUrl,
+          has_auth: hasAuth
+        })
       })
-      
+
       if (res.ok) {
         await fetch(`http://localhost:1984/api/streams?name=${encodeURIComponent(newCam.name)}&src=${encodeURIComponent(finalUrl)}`, {
           method: 'PUT'
         })
 
         setShowAddModal(false)
-        setNewCam({ name: '', url: '', type: 'rtsp', username: '', password: '' })
+        setNewCam({ name: '', url: '', username: '', password: '' })
         fetchCameras()
       }
     } catch (err) {
@@ -75,7 +83,7 @@ function App() {
 
   const handleDeleteCamera = async (id: number, name: string) => {
     if (!window.confirm(`¿Estás seguro de que quieres eliminar la cámara "${name}"?`)) return
-    
+
     try {
       const res = await fetch(`http://localhost:1994/api/cameras/${id}`, {
         method: 'DELETE'
@@ -101,7 +109,7 @@ function App() {
           </div>
           <span className="badge">ACTIVE</span>
         </div>
-        
+
         {cameras.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📹</div>
@@ -115,7 +123,7 @@ function App() {
                 <div className="cam-preview-placeholder">
                   <span className="icon-large">📹</span>
                   <div className="cam-status-overlay">
-                    {!cam.url.includes('@') && <span className="auth-warning">🔐 AUTH?</span>}
+                    {!cam.has_auth && <span className="auth-warning">🔐 AUTH?</span>}
                     <span className="live-dot-container"><span className="live-dot"></span> LIVE</span>
                   </div>
                 </div>
@@ -132,7 +140,7 @@ function App() {
           </div>
         )}
       </div>
-      
+
       <div className="side-panel">
         <div className="glass side-card stats">
           <h3>System Health</h3>
@@ -186,8 +194,8 @@ function App() {
                 <td style={{opacity: 0.6, fontFamily: 'monospace'}}>{cam.url.replace(/:.*@/, ':****@')}</td>
                 <td>
                   <div className="status-cell">
-                    <span className={`dot ${cam.url.includes('@') ? 'active' : 'warning'}`}></span>
-                    {cam.url.includes('@') ? 'Connected' : 'Credentials Required'}
+                    <span className={`dot ${cam.has_auth ? 'active' : 'warning'}`}></span>
+                    {cam.has_auth ? 'Connected' : 'Credentials Required'}
                   </div>
                 </td>
                 <td>
@@ -270,9 +278,9 @@ function App() {
             <form onSubmit={handleAddCamera}>
               <div className="form-group">
                 <label>Device Name</label>
-                <input 
-                  type="text" 
-                  value={newCam.name} 
+                <input
+                  type="text"
+                  value={newCam.name}
                   onChange={e => setNewCam({...newCam, name: e.target.value})}
                   placeholder="Ej: Aqara G410"
                   required
@@ -280,9 +288,9 @@ function App() {
               </div>
               <div className="form-group">
                 <label>RTSP URL</label>
-                <input 
-                  type="text" 
-                  value={newCam.url} 
+                <input
+                  type="text"
+                  value={newCam.url}
                   onChange={e => setNewCam({...newCam, url: e.target.value})}
                   placeholder="rtsp://192.168.1.10:554/stream"
                   required
@@ -291,18 +299,18 @@ function App() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Username</label>
-                  <input 
-                    type="text" 
-                    value={newCam.username} 
+                  <input
+                    type="text"
+                    value={newCam.username}
                     onChange={e => setNewCam({...newCam, username: e.target.value})}
                     placeholder="admin"
                   />
                 </div>
                 <div className="form-group">
                   <label>Password</label>
-                  <input 
-                    type="password" 
-                    value={newCam.password} 
+                  <input
+                    type="password"
+                    value={newCam.password}
                     onChange={e => setNewCam({...newCam, password: e.target.value})}
                     placeholder="••••••••"
                   />
@@ -329,9 +337,9 @@ function App() {
               <button className="btn-close" onClick={() => setSelectedCam(null)}>×</button>
             </div>
             <div className="video-container">
-              <iframe 
+              <iframe
                 src={`http://localhost:1984/webrtc.html?src=${encodeURIComponent(selectedCam.name)}`}
-                frameBorder="0"
+                style={{ border: 'none' }}
                 scrolling="no"
                 width="100%"
                 height="100%"

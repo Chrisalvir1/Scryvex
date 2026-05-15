@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -18,8 +20,29 @@ import (
 func main() {
 	log.Println("🚀 Scryvex v2.0 Starting...")
 
-	// Configuración de DB
-	dsn := "host=localhost user=chrisalvir dbname=scryvex port=5432 sslmode=disable"
+	// Configuración de DB desde variables de entorno
+	dbHost := os.Getenv("DB_HOST")
+	if dbHost == "" {
+		dbHost = "localhost"
+	}
+	dbUser := os.Getenv("DB_USER")
+	if dbUser == "" {
+		dbUser = "postgres"
+	}
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		dbName = "scryvex"
+	}
+	dbPort := os.Getenv("DB_PORT")
+	if dbPort == "" {
+		dbPort = "5432"
+	}
+	dbPassword := os.Getenv("DB_PASSWORD")
+
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		dbHost, dbUser, dbPassword, dbName, dbPort,
+	)
 	database.InitDB(dsn)
 	database.Migrate()
 
@@ -30,7 +53,19 @@ func main() {
 		database.DB.Find(&cameras)
 		for _, cam := range cameras {
 			log.Printf("📡 Registrando cámara: %s\n", cam.Name)
-			http.Get("http://localhost:1984/api/streams?name=" + cam.Name + "&src=" + cam.URL)
+			url := "http://localhost:1984/api/streams?name=" + cam.Name + "&src=" + cam.URL
+			req, err := http.NewRequest(http.MethodPut, url, nil)
+			if err != nil {
+				log.Printf("⚠️ Error creando request para cámara %s: %v\n", cam.Name, err)
+				continue
+			}
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				log.Printf("⚠️ Error registrando cámara %s en go2rtc: %v\n", cam.Name, err)
+				continue
+			}
+			resp.Body.Close()
+			log.Printf("✅ Cámara %s registrada (status: %d)\n", cam.Name, resp.StatusCode)
 		}
 	}()
 
@@ -68,14 +103,18 @@ func main() {
 
 	r.Get("/api/cameras", func(w http.ResponseWriter, r *http.Request) {
 		var cameras []database.Camera
-		if database.DB != nil { database.DB.Find(&cameras) }
+		if database.DB != nil {
+			database.DB.Find(&cameras)
+		}
 		json.NewEncoder(w).Encode(cameras)
 	})
 
 	r.Post("/api/cameras", func(w http.ResponseWriter, r *http.Request) {
 		var cam database.Camera
 		json.NewDecoder(r.Body).Decode(&cam)
-		if database.DB != nil { database.DB.Create(&cam) }
+		if database.DB != nil {
+			database.DB.Create(&cam)
+		}
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(cam)
 	})
@@ -89,9 +128,11 @@ func main() {
 	})
 
 	port := os.Getenv("PORT")
-	if port == "" { port = "1994" }
+	if port == "" {
+		port = "1994"
+	}
 
-	srv := &http.Server{ Addr: ":" + port, Handler: r }
+	srv := &http.Server{Addr: ":" + port, Handler: r}
 
 	go func() {
 		log.Printf("✅ Server listening on http://localhost:%s\n", port)
@@ -103,5 +144,12 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("👋 Shutting down Scryvex...")
+
+	log.Println("⏳ Shutting down Scryvex gracefully...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("❌ Server forced to shutdown: %v", err)
+	}
+	log.Println("👋 Scryvex shutdown complete")
 }
