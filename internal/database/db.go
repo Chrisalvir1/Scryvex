@@ -21,6 +21,7 @@ func InitDB(dsn string) {
 
 type Camera struct {
 	gorm.Model
+	ID       uint   `gorm:"primarykey" json:"ID"`
 	Name     string `json:"name"`
 	URL      string `json:"url"`
 	Type     string `json:"type"`

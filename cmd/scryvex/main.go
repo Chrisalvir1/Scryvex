@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,10 +18,41 @@ import (
 	"github.com/shirou/gopsutil/v3/process"
 )
 
+func registerInGo2rtc(name, streamURL string) {
+	u := "http://localhost:1984/api/streams?name=" + url.QueryEscape(name) + "&src=" + url.QueryEscape(streamURL)
+	req, err := http.NewRequest(http.MethodPut, u, nil)
+	if err != nil {
+		log.Printf("⚠️ Error creando request go2rtc para %s: %v\n", name, err)
+		return
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("⚠️ Error registrando %s en go2rtc: %v\n", name, err)
+		return
+	}
+	resp.Body.Close()
+	log.Printf("✅ go2rtc stream registrado: %s (status %d)\n", name, resp.StatusCode)
+}
+
+func deleteFromGo2rtc(name string) {
+	u := "http://localhost:1984/api/streams?name=" + url.QueryEscape(name)
+	req, err := http.NewRequest(http.MethodDelete, u, nil)
+	if err != nil {
+		log.Printf("⚠️ Error creando DELETE request go2rtc para %s: %v\n", name, err)
+		return
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Printf("⚠️ Error eliminando %s de go2rtc: %v\n", name, err)
+		return
+	}
+	resp.Body.Close()
+	log.Printf("🗑️ go2rtc stream eliminado: %s (status %d)\n", name, resp.StatusCode)
+}
+
 func main() {
 	log.Println("🚀 Scryvex v2.0 Starting...")
 
-	// Configuración de DB desde variables de entorno
 	dbHost := os.Getenv("DB_HOST")
 	if dbHost == "" {
 		dbHost = "localhost"
@@ -46,26 +78,14 @@ func main() {
 	database.InitDB(dsn)
 	database.Migrate()
 
-	// Cargar cámaras existentes en go2rtc
+	// Registrar cámaras activas en go2rtc al arrancar
 	go func() {
 		time.Sleep(5 * time.Second)
 		var cameras []database.Camera
 		database.DB.Find(&cameras)
 		for _, cam := range cameras {
 			log.Printf("📡 Registrando cámara: %s\n", cam.Name)
-			url := "http://localhost:1984/api/streams?name=" + cam.Name + "&src=" + cam.URL
-			req, err := http.NewRequest(http.MethodPut, url, nil)
-			if err != nil {
-				log.Printf("⚠️ Error creando request para cámara %s: %v\n", cam.Name, err)
-				continue
-			}
-			resp, err := http.DefaultClient.Do(req)
-			if err != nil {
-				log.Printf("⚠️ Error registrando cámara %s en go2rtc: %v\n", cam.Name, err)
-				continue
-			}
-			resp.Body.Close()
-			log.Printf("✅ Cámara %s registrada (status: %d)\n", cam.Name, resp.StatusCode)
+			registerInGo2rtc(cam.Name, cam.URL)
 		}
 	}()
 
@@ -101,6 +121,7 @@ func main() {
 		})
 	})
 
+	// Listar cámaras activas
 	r.Get("/api/cameras", func(w http.ResponseWriter, r *http.Request) {
 		var cameras []database.Camera
 		if database.DB != nil {
@@ -109,22 +130,54 @@ func main() {
 		json.NewEncoder(w).Encode(cameras)
 	})
 
+	// Listar cámaras eliminadas (soft-deleted)
+	r.Get("/api/cameras/deleted", func(w http.ResponseWriter, r *http.Request) {
+		var cameras []database.Camera
+		if database.DB != nil {
+			database.DB.Unscoped().Where("deleted_at IS NOT NULL").Find(&cameras)
+		}
+		json.NewEncoder(w).Encode(cameras)
+	})
+
+	// Crear cámara
 	r.Post("/api/cameras", func(w http.ResponseWriter, r *http.Request) {
 		var cam database.Camera
 		json.NewDecoder(r.Body).Decode(&cam)
 		if database.DB != nil {
 			database.DB.Create(&cam)
 		}
+		// Registrar en go2rtc desde el backend
+		go registerInGo2rtc(cam.Name, cam.URL)
 		w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(cam)
 	})
 
+	// Eliminar cámara (soft delete) — también elimina de go2rtc
 	r.Delete("/api/cameras/{id}", func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		if database.DB != nil {
-			database.DB.Delete(&database.Camera{}, id)
+			var cam database.Camera
+			if err := database.DB.First(&cam, id).Error; err == nil {
+				go deleteFromGo2rtc(cam.Name)
+				database.DB.Delete(&cam)
+			}
 		}
 		w.WriteHeader(http.StatusNoContent)
+	})
+
+	// Restaurar cámara eliminada
+	r.Post("/api/cameras/{id}/restore", func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		if database.DB != nil {
+			var cam database.Camera
+			if err := database.DB.Unscoped().First(&cam, id).Error; err != nil {
+				http.Error(w, "Camera not found", http.StatusNotFound)
+				return
+			}
+			database.DB.Unscoped().Model(&cam).Update("deleted_at", nil)
+			go registerInGo2rtc(cam.Name, cam.URL)
+			json.NewEncoder(w).Encode(cam)
+		}
 	})
 
 	port := os.Getenv("PORT")
